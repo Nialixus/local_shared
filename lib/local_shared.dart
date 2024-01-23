@@ -37,7 +37,12 @@ class LocalShared {
       if (isCollectionExist) {
       } else {
         if (isTargetingDocument) {
-          if (!upsert) {}
+          if (!upsert) {
+            return const SharedNone(
+              message: 'The specified collection does not exist.'
+                  'To create the collection, set the `upsert` parameter to true or create the collection beforehand.',
+            );
+          }
         }
 
         bool isSuccess = await databox.setString(
