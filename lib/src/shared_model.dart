@@ -13,11 +13,12 @@ abstract class SharedModel<T extends Object> {
 
   @override
   String toString() {
-    return '$runtimeType(${{
+    String content = {
       'success': success,
       'message': message,
       if (data != null) 'data': data,
-    }})';
+    }.toString();
+    return '$runtimeType(${content.substring(1, content.length - 1)})';
   }
 }
 

@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:local_shared/local_shared.dart';
 
-export 'shared_extension.dart' hide DynamicExtension;
+export 'shared_extension.dart'
+    hide DynamicExtension, StringExtension, JSONExtension;
 
 extension DynamicExtension on dynamic {
   T? validate<T extends dynamic>([
@@ -31,7 +32,6 @@ extension StringExtension on String {
 }
 
 extension JSONExtension on JSON {
-  String get encode {
-    return jsonEncode(this);
-  }
+  String get encode => jsonEncode(this);
+  List<JSON> get toList => [for (var item in entries) item.value];
 }
