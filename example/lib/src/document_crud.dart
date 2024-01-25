@@ -11,6 +11,7 @@ class _B extends State<DocumentCRUD> {
   final collection = TextEditingController(text: 'MY_COLLECTION_123');
   final document = TextEditingController(text: 'MY_DOCUMENT_123');
   final response = TextEditingController(text: ' ');
+  final json = TextEditingController(text: ' ');
 
   @override
   Widget build(BuildContext context) {
@@ -57,23 +58,70 @@ class _B extends State<DocumentCRUD> {
                       onPressed: () async {
                         switch (x) {
                           case 0:
-                            final result = await LocalShared(collection.text)
-                                .doc(document.text)
-                                .create({
-                              'name': 'Boi wonder',
-                              'description':
-                                  'Hi there 🤚, this is just a simple document',
+                            final response =
+                                await LocalShared.col(collection.text)
+                                    .doc(document.text)
+                                    .create({
+                              'title': 'The Art of Programming',
+                              'author': 'Louis Wiwawan',
+                              'published_year': 2023,
+                              'is_best_seller': true,
+                              'genres': ['Technology', 'Programming'],
+                              'ratings': {
+                                'average': 4.5,
+                                'reviews': 120,
+                              },
+                              'prices': [100, 100.0, '\$100.0'],
+                              'related_books': [
+                                {
+                                  'title': 'Coding Mastery',
+                                  'author': 'Jane A. Smith'
+                                },
+                                {
+                                  'title': 'Algorithms Unleashed',
+                                  'author': 'Robert B. Johnson'
+                                },
+                              ],
                             });
-                            response.text = '$result';
+                            this.response.text = '$response';
+                            json.text = '${response.data}';
+                            break;
+                          case 1:
+                            final response =
+                                await LocalShared.col(collection.text)
+                                    .doc(document.text)
+                                    .read();
+                            this.response.text = '$response';
+                            json.text = '${response.data}';
                             break;
                           case 2:
-                            response.text =
-                                'There is no `update` feature in collection 😐';
+                            final response =
+                                await LocalShared.col(collection.text)
+                                    .doc(document.text)
+                                    .update({
+                              'title': 'The Art of Programming Vol 2',
+                              'published_year': 5423,
+                              'publisher': {
+                                'name': 'Inidia.app',
+                              },
+                              'related_books': [
+                                {
+                                  'title': 'The Art of Programming',
+                                  'author': 'Louis Wiwawan',
+                                  'year': 2023,
+                                }
+                              ]
+                            });
+                            this.response.text = '$response';
+                            json.text = '${response.data}';
                             break;
                           case 3:
-                            final result =
-                                await LocalShared(collection.text).delete();
-                            response.text = '$result';
+                            final response =
+                                await LocalShared.col(collection.text)
+                                    .doc(document.text)
+                                    .delete();
+                            this.response.text = '$response';
+                            json.text = '${response.data}';
                             break;
                         }
                       },
@@ -95,21 +143,30 @@ class _B extends State<DocumentCRUD> {
             ),
           ),
           Expanded(
-              child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TextField(
-              controller: response,
-              enabled: false,
-              expands: true,
-              maxLines: null,
-              style: TextStyle(color: Colors.black.withOpacity(0.65)),
-              decoration: const InputDecoration(
-                labelText: 'Response',
-                labelStyle: TextStyle(color: Colors.black),
-                border: OutlineInputBorder(),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (int i = 0; i < 2; i++)
+                    Expanded(
+                      child: TextField(
+                        controller: [response, json][i],
+                        enabled: false,
+                        expands: true,
+                        maxLines: null,
+                        style: TextStyle(color: Colors.black.withOpacity(0.65)),
+                        decoration: InputDecoration(
+                          labelText: ['Response', 'JSON'][i],
+                          labelStyle: const TextStyle(color: Colors.black),
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                ]..insert(1, const SizedBox(width: 20.0)),
               ),
             ),
-          ))
+          )
         ]),
       ),
     );
@@ -118,7 +175,9 @@ class _B extends State<DocumentCRUD> {
   @override
   void dispose() {
     collection.dispose();
+    document.dispose();
     response.dispose();
+    json.dispose();
     super.dispose();
   }
 }

@@ -7,7 +7,9 @@ part 'src/collection_crud.dart';
 part 'src/document_crud.dart';
 part 'src/many_document_crud.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalShared('MY_DB').initialize();
   runApp(const MaterialApp(
     title: 'Local Shared CRUD',
     home: MyApp(),
@@ -64,9 +66,12 @@ class MyApp extends StatelessWidget {
                       ][x],
                       color: Colors.white,
                     ),
-                    label: Text(
-                      ['Collection', 'Document', 'Many Document'][x],
-                      style: const TextStyle(color: Colors.white),
+                    label: SizedBox(
+                      width: 150.0,
+                      child: Text(
+                        ['Collection', 'Document', 'Many Document'][x],
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 );
