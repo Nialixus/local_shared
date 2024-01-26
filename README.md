@@ -146,13 +146,12 @@ LocalShared.stream.listen(print);
 
 await Shared.col('myCollection').docs(['A','B']).create((id) => {'desc': 'test'});
 ```
-```bash
-{id: myCollection,
-documents: [
-    {id: A, data: {desc: test}},
-    {id: B, data: {desc: test}}
-]}
-```
+Result:
+> {id: myCollection,
+> documents: [
+>     {id: A, data: {desc: test}},
+>     {id: B, data: {desc: test}}
+> ]}
 
 ### Custom Stream
 If you only want to observe changes in a specific collection, you can use the following approach:
@@ -165,22 +164,22 @@ controller.stream.listen(print);
 
 await collection.docs(['A','B']).create((id) => {'desc': 'test'});
 ```
-```bash
-{id: myCertainCollection,
-documents: [
-    {id: A, data: {desc: test}},
-    {id: B, data: {desc: test}}
-]}
-```
+Result:
+
+> {id: myCertainCollection,
+> documents: [
+>     {id: A, data: {desc: test}},
+>     {id: B, data: {desc: test}}
+> ]}
 
 ## Extension
-To make things easier, there's extension to handle response data of `SharedResponse`.
-if you want to expect SharedResponse return `JSON?`, call this method:
+To simplify matters, there's an extension to handle response data from SharedResponse. 
+If you're expecting SharedResponse to return `JSON?`, call this method:
 ```dart
 JSON? result = await Shared.col(id).doc(id).read().one;
 ```
 
-or if you expecting SharedResponse to return `List<JSON>?`, call this method:
+Alternatively, if you're expecting SharedResponse to return a `List<JSON>?`, call this method:
 ```dart
 List<JSON>? result = await Shared.col(id).read().many;
 ```
