@@ -39,7 +39,9 @@ You can even create a custom definition for added convenience.
 typedef DB = LocalShared;
 ```
 
-## Collection
+## Collection | [View Code](https://github.com/Nialixus/local_shared/blob/main/example/lib/src/collection_crud.dart)
+[Collection CRUD Preview](https://github.com/Nialixus/local_shared/assets/45191605/cadda35c-32c8-4c60-9848-a2099e2377f3)
+
 This guide illustrates fundamental CRUD (Create, Read, Update, Delete) operations for collection management. Interacting with it can be achieved through the following methods: `Shared.col(id)` or `Shared.collection(id)`.
 
 ### Create
@@ -70,7 +72,9 @@ final response = await Shared.col('myNewCollection').delete();
 print(response): // SharedNone(success: true, message: '....')
 ```
 
-## Document
+## Document | [View Code](https://github.com/Nialixus/local_shared/blob/main/example/lib/src/document_crud.dart)
+[Document CRUD Preview](https://github.com/Nialixus/local_shared/assets/45191605/e8848c32-b9c2-4406-a0d4-ae8b0caad64f)
+
 This guide elaborates on the essential CRUD (Create, Read, Update, Delete) operations for document management within collections. Interacting with document can be achieved through the following methods: `Shared.col(id).doc(id)` or `Shared.collection(id).document(id)`.
 
 ### Create
@@ -101,7 +105,9 @@ final response = await Shared.col('myCollection').doc('documentId').delete();
 print(response): // SharedNone(success: true, message: '...')
 ```
 
-## Many Document
+## Many Document | [View Code](https://github.com/Nialixus/local_shared/blob/main/example/lib/src/many_document_crud.dart)
+[Many Document CRUD Preview](https://github.com/Nialixus/local_shared/assets/45191605/8cb30d72-ec7e-4b4c-8516-c4f12702e879)
+
 This guide details the fundamental CRUD (Create, Read, Update, Delete) operations for the management of multiple documents within collections. Interacting with this can be achieved through the following methods: `Shared.col(id).docs([id1, id2])` or `Shared.collection(id).documents([id1, id2])`.
 
 ### Create
