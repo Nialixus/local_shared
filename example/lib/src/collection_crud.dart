@@ -41,15 +41,13 @@ class _A extends State<CollectionCRUD> {
                           switch (x) {
                             case 0:
                               final response =
-                                  await LocalShared.collection(collection.text)
-                                      .create();
+                                  await Shared.col(collection.text).create();
                               this.response.text = '$response';
                               json.text = '${response.data}';
                               break;
                             case 1:
                               final response =
-                                  await LocalShared.collection(collection.text)
-                                      .read();
+                                  await Shared.col(collection.text).read();
                               this.response.text = '$response';
                               json.text = '${response.data}';
                               break;
@@ -57,16 +55,14 @@ class _A extends State<CollectionCRUD> {
                               String id =
                                   'MY_COLLECTION_${Random().nextInt(1000).toString().padLeft(3, '0')}';
                               final response =
-                                  await LocalShared.collection(collection.text)
-                                      .update(id);
+                                  await Shared.col(collection.text).update(id);
                               this.response.text = '$response';
                               json.text = '${response.data}';
                               collection.text = id;
                               break;
                             case 3:
                               final response =
-                                  await LocalShared.collection(collection.text)
-                                      .delete();
+                                  await Shared.col(collection.text).delete();
                               this.response.text = '$response';
                               json.text = '${response.data}';
                               break;

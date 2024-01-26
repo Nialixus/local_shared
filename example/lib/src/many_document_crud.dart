@@ -63,46 +63,40 @@ class _C extends State<ManyDocumentCRUD> {
 
                         switch (x) {
                           case 0:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .docs(ids)
-                                    .create((id) => {
-                                          'book_id': id,
-                                          'author': 'Louis Wiwawan',
-                                          'published_year':
-                                              Random().nextInt(1000),
-                                          'genres': [
-                                            'Technology',
-                                            'Programming'
-                                          ][Random().nextInt(2)],
-                                        });
+                            final response = await Shared.col(collection.text)
+                                .docs(ids)
+                                .create((id) => {
+                                      'book_id': id,
+                                      'author': 'Louis Wiwawan',
+                                      'published_year': Random().nextInt(1000),
+                                      'genres': [
+                                        'Technology',
+                                        'Programming'
+                                      ][Random().nextInt(2)],
+                                    });
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;
                           case 1:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .docs(ids)
-                                    .read();
+                            final response = await Shared.col(collection.text)
+                                .docs(ids)
+                                .read();
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;
                           case 2:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .docs(ids)
-                                    .update((id) => {
-                                          'updated_at':
-                                              DateTime.now().toString(),
-                                        });
+                            final response = await Shared.col(collection.text)
+                                .docs(ids)
+                                .update((id) => {
+                                      'updated_at': DateTime.now().toString(),
+                                    });
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;
                           case 3:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .docs(ids)
-                                    .delete();
+                            final response = await Shared.col(collection.text)
+                                .docs(ids)
+                                .delete();
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;

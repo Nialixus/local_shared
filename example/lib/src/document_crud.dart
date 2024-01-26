@@ -58,10 +58,9 @@ class _B extends State<DocumentCRUD> {
                       onPressed: () async {
                         switch (x) {
                           case 0:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .doc(document.text)
-                                    .create({
+                            final response = await Shared.col(collection.text)
+                                .doc(document.text)
+                                .create({
                               'title': 'The Art of Programming',
                               'author': 'Louis Wiwawan',
                               'published_year': 2023,
@@ -87,26 +86,23 @@ class _B extends State<DocumentCRUD> {
                             json.text = '${response.data}';
                             break;
                           case 1:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .doc(document.text)
-                                    .read();
+                            final response = await Shared.col(collection.text)
+                                .doc(document.text)
+                                .read();
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;
                           case 2:
-                            final response = await LocalShared.col(
-                                    collection.text)
+                            final response = await Shared.col(collection.text)
                                 .doc(document.text)
                                 .update({'updated_at': '${DateTime.now()}'});
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;
                           case 3:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .doc(document.text)
-                                    .delete();
+                            final response = await Shared.col(collection.text)
+                                .doc(document.text)
+                                .delete();
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;
