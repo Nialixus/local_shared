@@ -45,7 +45,7 @@ typedef DB = LocalShared;
 This guide illustrates fundamental CRUD (Create, Read, Update, Delete) operations for collection management. Interacting with it can be achieved through the following methods: `Shared.col(id)` or `Shared.collection(id)`.
 
 ### Create
-To initiate the creation of a new collection utilize this method:
+To initiate the creation of a new collection, utilize this method:
 ```dart
 final result = await Shared.col('myCollection').create();
 print(result); // SharedMany(success: true, message: '...', data: <JSON>[])
