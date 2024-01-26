@@ -162,7 +162,7 @@ final collection = SharedCollection('myCertainCollection', controller: controlle
 
 controller.stream.listen(print);
 
-await collection.docs(['A','B']).create((id) => {'desc': 'test'});
+await collection.docs(['A','B']).create((index) => {'desc': 'test'});
 ```
 Result:
 
