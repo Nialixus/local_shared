@@ -161,7 +161,7 @@ class SharedManyDocument {
       return SharedMany(
         success: data.isNotEmpty,
         message: data.isNotEmpty
-            ? '${data.length} document from specified IDs `${ids.join('`, `')}`'
+            ? '${data.length} / ${ids.length} document from specified IDs `${ids.join('`, `')}`'
                 ' has been successfully retrieved.'
             : 'There\'s no single document from specified IDs `${ids.join('`, `')}` found',
         data: data,
