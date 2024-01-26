@@ -2,11 +2,11 @@
   <img src="https://raw.githubusercontent.com/Nialixus/local_shared/main/logo.png" alt="Inidia.app Local Shared Logo" width="150">
 </p>
 
-# Type Writer Text
+# Local Shared
 
 <a href='https://pub.dev/packages/local_shared'><img src='https://img.shields.io/pub/v/local_shared.svg?logo=flutter&color=blue&style=flat-square'/></a>\
 \
-A SharedPreferences-based local storage package designed as an alternative to the localstore
+SharedPreferences-based local storage, designed as a multi-platform alternative to the localstore package
 
 ## Preview
 
@@ -23,7 +23,7 @@ dependencies:
 
 ## Initialize
 
-Initialize the LocalShared instance in your main function after ensuring Flutter is initialized.
+Start by initializing the LocalShared instance in your main function, ensuring Flutter is properly initialized.
 ```dart
 import 'package:local_shared/local_shared.dart';
 
@@ -33,25 +33,24 @@ void main() async {
 }
 ```
 
-and then later in the app access collection and document with either `LocalShared` or `Shared` prefix.
-[!NOTE]
-or you can made your own definition like
+and next, interact with collections and documents using either the `LocalShared` or `Shared` prefix. 
+You can even create a custom definition for added convenience.
 ```dart
 typedef DB = LocalShared;
 ```
 
 ## Collection
-This guide illustrates fundamental CRUD (Create, Read, Update, Delete) operations using local_shared for collection management. Interacting with collection in local_shared can be achieved through the following methods: `Shared.col(id)` or `Shared.collection(id)`.
+This guide illustrates fundamental CRUD (Create, Read, Update, Delete) operations for collection management. Interacting with it can be achieved through the following methods: `Shared.col(id)` or `Shared.collection(id)`.
 
 ### Create
 To initiate the creation of a new collection utilize this method:
 ```dart
 final result = await Shared.col('myCollection').create();
-print(result); // SharedMany(success: true, message: 'Collection created successfully.', data: <JSON>[])
+print(result); // SharedMany(success: true, message: '...', data: <JSON>[])
 ```
 
 ### Read
-To retrieve information pertaining to a collection invoke this method:
+To retrieve information pertaining to a collection, invoke this method:
 ```dart
 final response = await Shared.col('myCollection').read();
 print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
@@ -67,12 +66,12 @@ print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
 ### Delete
 To remove a collection, employ this method:
 ```dart
-final response = await Shared.col('myCollection').delete();
+final response = await Shared.col('myNewCollection').delete();
 print(response): // SharedNone(success: true, message: '....')
 ```
 
 ## Document
-This guide elaborates on the essential CRUD (Create, Read, Update, Delete) operations using local_shared for document management within collections. Interacting with document in local_shared can be achieved through the following methods: `Shared.col(id).doc(id)` or `Shared.collection(id).document(id)`.
+This guide elaborates on the essential CRUD (Create, Read, Update, Delete) operations for document management within collections. Interacting with document can be achieved through the following methods: `Shared.col(id).doc(id)` or `Shared.collection(id).document(id)`.
 
 ### Create
 To initiate the creation of a new document, leverage this method:
@@ -103,7 +102,7 @@ print(response): // SharedNone(success: true, message: '...')
 ```
 
 ## Many Document
-This guide details the fundamental CRUD (Create, Read, Update, Delete) operations facilitated by local_shared for the management of multiple documents within collections. Interacting with many document can be achieved through the following methods: `Shared.col(id).docs([id1, id2])` or `Shared.collection(id).documents([id1, id2])`.
+This guide details the fundamental CRUD (Create, Read, Update, Delete) operations for the management of multiple documents within collections. Interacting with this can be achieved through the following methods: `Shared.col(id).docs([id1, id2])` or `Shared.collection(id).documents([id1, id2])`.
 
 ### Create
 Initiate the creation of multiple documents with this method:
@@ -134,22 +133,19 @@ print(response); // SharedNone(success: true, message: '...')
 ```
 
 ## Stream
-LocalShared provides a JSON stream to observe changes whenever you interact with collections using the Shared.col('') syntax, which returns data for a single collection. If you engage with multiple collections, each interaction replaces the previous one.
+`LocalShared` offers a JSON stream for observing changes in collections when using the Shared.col(id) syntax. If you interact with multiple collections, the stream exclusively displays data from the latest collection you engage with.
 
 ```dart
 LocalShared.stream.listen(print);
 
 await Shared.col('myCollection').docs(['A','B']).create((id) => {'desc': 'test'});
-
-// observed event
-/*
-{
-id: myCollection,
+```
+```bash
+{id: myCollection,
 documents: [
     {id: A, data: {desc: test}},
     {id: B, data: {desc: test}}
 ]}
-*/
 ```
 
 ### Custom Stream
@@ -162,18 +158,14 @@ final collection = SharedCollection('myCertainCollection', controller: controlle
 controller.stream.listen(print);
 
 await collection.docs(['A','B']).create((id) => {'desc': 'test'});
-
-// observed event
-/*
-{
-id: myCertainCollection,
+```
+```bash
+{id: myCertainCollection,
 documents: [
     {id: A, data: {desc: test}},
     {id: B, data: {desc: test}}
 ]}
-*/
 ```
 
 ## Example
-
-- <a href="https://github.com/Nialixus/typewritertext/blob/master/example/lib/main.dart">typewritertext/example/lib/main.dart</a>
+- <a href="https://github.com/Nialixus/local_shared/blob/main/example/lib/main.dart">local_shared/example/lib/main.dart</a>
