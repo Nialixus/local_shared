@@ -9,19 +9,19 @@ part of '../local_shared.dart';
 /// ```dart
 /// // Create a new document within a collection
 /// final result = await Shared.col('myCollection').doc('documentId').create({'key': 'value'});
-/// print(response); // SharedOne(success: true, message: '...', data: {'key': 'value'})
+/// print(response); // SharedOne(success: true, message: '...', data: JSON)
 /// ```
 /// ---
 /// ```dart
 /// // Read the contents of a document within a collection
 /// final response = await Shared.col('myCollection').doc('documentId').read();
-/// print(response); // SharedOne(success: true, message: '...', data: {'key': 'value'})
+/// print(response); // SharedOne(success: true, message: '...', data: JSON)
 /// ```
 /// ---
 /// ```dart
 /// // Update the contents of a document within a collection
 /// final response = await Shared.col('myCollection').doc('documentId').update({'newKey': 'newValue'});
-/// print(response); // SharedOne(success: true, message: '...', data: {'newKey': 'newValue'})
+/// print(response); // SharedOne(success: true, message: '...', data: JSON)
 /// ```
 /// ---
 /// ```dart
@@ -53,7 +53,7 @@ class SharedDocument {
   ///
   /// ```dart
   /// final response = await Shared.col('myCollection').doc('documentId').create({'key': 'value'});
-  /// print(response); // SharedOne(success: true, message: '...', data: {'key': 'value'})
+  /// print(response); // SharedOne(success: true, message: '...', data: JSON)
   /// ```
   Future<SharedResponse> create(
     JSON document, {
@@ -117,7 +117,7 @@ class SharedDocument {
   ///
   /// ```dart
   /// final response = await Shared.col('myCollection').doc('documentId').read();
-  /// print(response); // SharedOne(success: true, message: '...', data: {'key': 'value'})
+  /// print(response); // SharedOne(success: true, message: '...', data: JSON)
   /// ```
   Future<SharedResponse> read() async {
     try {
@@ -156,7 +156,7 @@ class SharedDocument {
   ///
   /// ```dart
   /// final response = await Shared.col('myCollection').doc('documentId').update({'newKey': 'newValue'});
-  /// print(response); // SharedOne(success: true, message: '...', data: {'newKey': 'newValue'})
+  /// print(response); // SharedOne(success: true, message: '...', data: JSON)
   /// ```
   Future<SharedResponse> update(
     JSON document, {
