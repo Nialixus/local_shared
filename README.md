@@ -113,7 +113,7 @@ This guide details the fundamental CRUD (Create, Read, Update, Delete) operation
 ### Create
 Initiate the creation of multiple documents with this method:
 ```dart
-final result = await Shared.col('myCollection').docs(['docId1', 'docId2']).create((id) => {'key': 'value'});
+final result = await Shared.col('myCollection').docs(['docId1', 'docId2']).create((index) => {'key': 'value'});
 print(result); // SharedMany(success: true, message: '...', data: <JSON>[])
 ```
 
@@ -127,7 +127,7 @@ print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
 ### Update
 Modify the contents of multiple documents within a collection with this method:
 ```dart
-final response = await Shared.col('myCollection').docs(['docId1', 'docId2']).update((id) => {'newKey': 'newValue'});
+final response = await Shared.col('myCollection').docs(['docId1', 'docId2']).update((index) => {'newKey': 'newValue'});
 print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
 ```
 
@@ -139,12 +139,12 @@ print(response); // SharedNone(success: true, message: '...')
 ```
 
 ## Stream
-`LocalShared` offers a JSON stream for observing changes in collections when using the Shared.col(id) syntax. If you interact with multiple collections, the stream exclusively displays data from the latest collection you engage with.
+`LocalShared` offers a JSON stream for observing changes in collections when we access those collection through `Shared.col` or `Shared.collection` syntax. And if you interact with multiple collections, the stream exclusively displays data from the latest collection you engage with.
 
 ```dart
 LocalShared.stream.listen(print);
 
-await Shared.col('myCollection').docs(['A','B']).create((id) => {'desc': 'test'});
+await Shared.col('myCollection').docs(['A','B']).create((index) => {'desc': 'test'});
 ```
 Result:
 > {id: myCollection,
