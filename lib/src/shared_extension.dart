@@ -86,17 +86,12 @@ extension JSONExtension on JSON {
     }
     return jsonEncode(this);
   }
-
-  /// Converts the [JSON] object into a list of [JSON] objects.
-  ///
-  /// Each entry in the original [JSON] object is converted to a [JSON] object and added to the list.
-  List<JSON> get toList => [for (var item in entries) item.value];
 }
 
 /// Extension on [SharedResponse] providing convenience getters for handling
 /// responses with one or many data items.
 extension SharedResponseExtension on SharedResponse<Object> {
-  /// Except a single JSON data if the response is [SharedOne].
+  /// Expect a single JSON data if the response is [SharedOne].
   ///
   /// Returns `null` if the response is not [SharedOne] type.
   ///
