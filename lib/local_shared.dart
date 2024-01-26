@@ -108,7 +108,7 @@ class LocalShared {
   }
 
   /// A stream that listens for any changes when you interacting with collections or documents
-  /// through the `Shared.collection(id)` or `Shared.col(id)` shortcut.
+  /// through the [LocalShared.collection] or [LocalShared.col] shortcut.
   ///
   /// ```dart
   /// LocalShared.stream.listen(print);
