@@ -1,5 +1,6 @@
 library local_shared;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:local_shared/src/shared_extension.dart';
@@ -21,7 +22,7 @@ typedef Shared = LocalShared;
 /// ```dart
 /// void main() {
 ///   WidgetsFlutterBinding.ensureInitialized();
-///   await LocalShared('MY_DB').initialize();
+///   await LocalShared('DATABASE').initialize();
 /// }
 /// ```
 ///
@@ -29,7 +30,7 @@ typedef Shared = LocalShared;
 ///
 /// ```dart
 /// final response = await Shared.col(id).doc(id).read();
-/// print(response); // SharedOne(success: true, message: successfully reading data, data: {'title': 'test'}) */
+/// print(response); // SharedOne(success: true, message: '..., data: JSON) */
 /// ```
 class LocalShared {
   /// Default constructor of [LocalShared] containing [id] to be used as prefix in [SharedPreferences].
@@ -47,6 +48,13 @@ class LocalShared {
   /// The [SharedPreferences] instance used as data storage base.
   static SharedPreferences? _db;
 
+  /// Stream controller that listen changes when triggered by
+  /// `create`, `update` and `delete` action on [SharedCollection], [SharedDocument] and [SharedManyDocument]
+  ///
+  /// this listen to [JSON] value.
+  static final StreamController<JSON> _controller =
+      StreamController<JSON>.broadcast();
+
   /// Initializes the [LocalShared] instance.
   ///
   /// Call this once inside main function after ensuring flutter initialized.
@@ -62,43 +70,58 @@ class LocalShared {
     _db = await SharedPreferences.getInstance();
   }
 
-  /// Load the [SharedPreferences] instance after calling [initialize].
+  /// Loaded [SharedPreferences] instance from awaiting [initialize].
   ///
   /// This instance will be used in entire lifecycle of the app.
   static SharedPreferences get preferences {
-    if (_db == null) {
-      throw StateError("LocalShared not initialized. Call initialize() first.");
-    } else {
+    if (_db != null) {
       return _db!;
+    } else {
+      throw StateError("LocalShared not initialized. Call initialize() first.");
     }
   }
 
   /// Shortcut to interact with [SharedCollection] with the given [id].
   ///
-  /// Requiring [id] as its collection id.
   /// ```dart
   /// // The syntax will either look like this
-  /// LocalShared.col(collectionID).doc(documentID).read();
-  ///
-  /// // or
-  /// Shared.col(collectionID).doc(documentID).read();
+  /// LocalShared.col(collectionID)...
+  /// // or for shorter prefix
+  /// Shared.col(collectionID)...
   /// ```
   static SharedCollection col(String id) {
-    return SharedCollection(id, database: preferences);
+    return SharedCollection(id, controller: _controller);
   }
 
   /// Another shortcut that not so short compare to [col]
-  /// that will be use to interact with [SharedCollection].
+  /// which will be use to interact with [SharedCollection].
   ///
   /// Requiring [id] as its collection id.
   /// ```dart
   /// // The syntax will either look like this
-  /// LocalShared.collection(collectionID).document(documentID).read();
-  ///
-  /// // or
-  /// Shared.collection(collectionID).document(documentID).read();
+  /// LocalShared.collection(collectionID)...
+  /// // or for shorter prefix
+  /// Shared.collection(collectionID)...
   /// ```
   static SharedCollection collection(String id) {
     return LocalShared.col(id);
   }
+
+  /// A stream that listens for any changes when you interacting with collections or documents
+  /// through the LocalShared.collection shortcut.
+  ///
+  /// ```dart
+  /// LocalShared.stream.listen(print);
+  /// // { id: COLLECTION_ID,
+  /// //   documents: [
+  /// //    { id: DOCUMENT_ID,
+  /// //      data: { key: value, },
+  /// //    }
+  /// // ]}
+  /// ```
+  static Stream<JSON> get stream => _controller.stream;
+
+  /// Closes the [stream]. After calling this method,
+  /// you won't be able to listen to changes anymore until you restart the app.
+  static Future<void> close() => _controller.close();
 }

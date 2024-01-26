@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:local_shared/local_shared.dart';
 
@@ -10,6 +11,10 @@ part 'src/many_document_crud.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalShared('MY_DB').initialize();
+
+  // ignore: avoid_print
+  if (kDebugMode) LocalShared.stream.listen(print);
+
   runApp(const MaterialApp(
     title: 'Local Shared CRUD',
     home: MyApp(),

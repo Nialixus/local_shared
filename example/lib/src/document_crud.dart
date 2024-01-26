@@ -95,23 +95,10 @@ class _B extends State<DocumentCRUD> {
                             json.text = '${response.data}';
                             break;
                           case 2:
-                            final response =
-                                await LocalShared.col(collection.text)
-                                    .doc(document.text)
-                                    .update({
-                              'title': 'The Art of Programming Vol 2',
-                              'published_year': 5423,
-                              'publisher': {
-                                'name': 'Inidia.app',
-                              },
-                              'related_books': [
-                                {
-                                  'title': 'The Art of Programming',
-                                  'author': 'Louis Wiwawan',
-                                  'year': 2023,
-                                }
-                              ]
-                            });
+                            final response = await LocalShared.col(
+                                    collection.text)
+                                .doc(document.text)
+                                .update({'updated_at': '${DateTime.now()}'});
                             this.response.text = '$response';
                             json.text = '${response.data}';
                             break;

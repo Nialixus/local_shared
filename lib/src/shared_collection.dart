@@ -1,17 +1,67 @@
 part of '../local_shared.dart';
 
+/// Represents a collection of [SharedDocument] within the [LocalShared] storage.
+///
+/// Collections are used to organize and manage related pieces of data.
+/// This class provides methods for creating, reading, updating, and deleting collections,
+/// as well as shortcuts for interacting with documents and multiple documents.
+/// ---
+/// ```dart
+/// // Create a new collection
+/// final result = await Shared.col('myCollection').create();
+/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+/// ```
+/// ---
+/// ```dart
+/// // Read the contents of a collection
+/// final response = await Shared.col('myCollection').read();
+/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+/// ```
+/// ---
+/// ```dart
+/// // Update a collection
+/// final response = await Shared.col('myCollection').update();
+/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+/// ```
+/// ---
+/// ```dart
+/// // Delete a collection
+/// final response = await Shared.col('myCollection').delete();
+/// print(response): // SharedNone(success: true, message: '...')
+/// ```
 class SharedCollection {
-  const SharedCollection(this.id, {required this.database})
-      : assert(id.length != 0, 'Collection id shouln\'t be empty');
-  final String id;
-  final SharedPreferences database;
+  /// Creates a new instance of [SharedCollection].
+  ///
+  /// The [id] parameter is the unique identifier for the collection, and the [controller] is used
+  /// to listen for changes triggered by create, update, and delete actions on the collection.
+  ///
+  /// Throws an assertion error if [id] is empty.
+  SharedCollection(this.id, {required StreamController<JSON> controller})
+      : _controller = controller,
+        assert(id.isNotEmpty, 'Collection id shouln\'t be empty');
 
+  /// The unique identifier for this collection.
+  final String id;
+
+  /// The stream controller used to listen for changes in the collection.
+  late final StreamController<JSON> _controller;
+
+  /// Creates a new collection.
+  ///
+  /// Optionally, it can replace an existing collection if [replace] is set to true.
+  /// Returns a [SharedResponse] of [SharedMany] that indicating the success of the operation
+  /// or [SharedNone] for failure of the operation.
+  ///
+  /// ```dart
+  /// final response = await Shared.col(id).create();
+  /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+  /// ```
   Future<SharedResponse> create({
     bool replace = false,
   }) async {
     try {
       // [1] Get collection 📂.
-      List<JSON>? collection = database.getString(id)?.decode.toList;
+      JSON? collection = Shared.preferences.getString(id)?.decode;
 
       // [2] Check if its allowed to create by replacing an old collection or not 💪.
       if (collection != null && !replace) {
@@ -22,26 +72,37 @@ class SharedCollection {
       }
 
       // [3] Create the collection 🎉.
-      bool result = await database.setString(id, jsonEncode({}));
+      bool result = await Shared.preferences.setString(id, jsonEncode({}));
 
-      // [4] Returning the result of creating / replacing this collection 🚀.
+      // [4] Notify the stream about the change in the collection 📣.
+      _controller.add({'id': id, 'documents': []});
+
+      // [5] Returning the result of creating / replacing this collection 🚀.
       return SharedMany(
         success: result,
         message: result
             ? 'The collection with ID `$id` has been successfully ${replace ? 'recreated' : 'created'}.'
             : 'Failed to ${replace ? 'recreate' : 'create'} the collection with ID `$id`. Please try again.',
-        data: database.getString(id)?.decode.toList,
+        data: Shared.preferences.getString(id)?.decode.toList,
       );
     } catch (e) {
-      // [5] Returning bad news 🧨.
+      // [6] Returning bad news 🧨.
       return SharedNone(message: '$e');
     }
   }
 
+  /// Retrieves the contents of the collection.
+  ///
+  /// Returns [SharedResponse] of [SharedMany] for success and [SharedNone] for failure.
+  ///
+  /// ```dart
+  /// final response = await Shared.col(id).read();
+  /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+  /// ```
   Future<SharedResponse> read() async {
     try {
       // [1] Get collection 📂.
-      JSON? collection = database.getString(id)?.decode;
+      JSON? collection = Shared.preferences.getString(id)?.decode;
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -62,6 +123,16 @@ class SharedCollection {
     }
   }
 
+  /// Migrates the current collection to a new collection with the specified [id].
+  ///
+  /// Optionally, it can replace an existing target collection if [replace] is set to true.
+  /// Optionally, it can force migration even if the current collection does not exist, by setting [force] to true.
+  /// Returns a [SharedResponse] of [SharedMany] indicating the success or [SharedNone] for failure of the migration.
+  ///
+  /// ```dart
+  /// final response = await Shared.col(id).update();
+  /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+  /// ```
   Future<SharedResponse> update(
     String id, {
     bool replace = false,
@@ -69,10 +140,10 @@ class SharedCollection {
   }) async {
     try {
       // [1] Get current collection 📂.
-      JSON? collection = database.getString(this.id)?.decode;
+      JSON? collection = Shared.preferences.getString(this.id)?.decode;
 
       // [2] Get targeted collection 📂.
-      JSON? target = database.getString(id)?.decode;
+      JSON? target = Shared.preferences.getString(id)?.decode;
 
       // [3] Check if the current collection id is exactly the same with the new one or not 💩.
       if (this.id == id) {
@@ -99,34 +170,56 @@ class SharedCollection {
       }
 
       // [6] Creating new collection 🎉.
-      bool result = await database.setString(id, jsonEncode(collection ?? {}));
+      bool result =
+          await Shared.preferences.setString(id, jsonEncode(collection ?? {}));
+
+      // [7] Notify the stream about the change in the collection 📣.
+      _controller.add({
+        'id': id,
+        'documents': [
+          for (var item
+              in (Shared.preferences.getString(id)?.decode ?? {}).entries)
+            {'id': item.key, 'data': item.value}
+        ]
+      });
 
       if (result) {
-        // [7] Delete the old collection 🧹.
-        bool delete = await database.remove(this.id);
+        // [8] Delete the old collection 🧹.
+        bool delete = await Shared.preferences.remove(this.id);
 
-        // [8] Returning the result of migrating this collection 🚀.
+        // [9] Returning the result of migrating this collection 🚀.
         return SharedMany(
             success: delete,
             message: delete
                 ? 'Successfully migrated collection from ID `${this.id}` to ID `$id`.'
                 : 'Failed to clear the old collection after migrating to the new ID. '
                     'Please try deleting the collection with ID `${this.id}` manually.',
-            data: database.getString(delete ? id : this.id)?.decode.toList);
+            data: Shared.preferences
+                .getString(delete ? id : this.id)
+                ?.decode
+                .toList);
       }
 
-      // [9] Sending bad news 💀.
+      // [10] Sending bad news 💀.
       throw 'Failed to migrate the collection from ID ${this.id} to ID $id.';
     } catch (e) {
-      // [10] Catching bad news 🧨.
+      // [11] Catching bad news 🧨.
       return SharedNone(message: '$e');
     }
   }
 
+  /// Deletes the collection.
+  ///
+  /// Returns a [SharedResponse] of [SharedNone] indicating the success or failure of the deletion.
+  ///
+  /// ```dart
+  /// final response = await Shared.col(id).delete();
+  /// print(response): // SharedNone(success: true, message: '...')
+  /// ```
   Future<SharedResponse> delete() async {
     try {
       // [1] Get collection 📂.
-      JSON? collection = database.getString(id)?.decode;
+      JSON? collection = Shared.preferences.getString(id)?.decode;
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -135,9 +228,12 @@ class SharedCollection {
       }
 
       // [3] Deleting the collection 🧹.
-      bool result = await database.remove(id);
+      bool result = await Shared.preferences.remove(id);
 
-      // [4] Returning the result of deleting this collection 🚀.
+      // [4] Notify the stream about the change in the collection 📣.
+      _controller.add({});
+
+      // [5] Returning the result of deleting this collection 🚀.
       return SharedNone(
         success: result,
         message: result
@@ -145,11 +241,17 @@ class SharedCollection {
             : 'Failed to delete the collection with ID `$id`. Please try again.',
       );
     } catch (e) {
-      // [5] Returning bad news 🧨.
+      // [6] Returning bad news 🧨.
       return SharedNone(message: '$e');
     }
   }
 
+  /// A shortcut to interact with [SharedDocument] trough [SharedCollection].
+  ///
+  /// ```dart
+  /// await Shared.col(id).doc(id)...
+  /// await Shared.collection(id).doc(id)...
+  /// ```
   SharedDocument doc(String id) {
     return SharedDocument(
       id,
@@ -157,14 +259,32 @@ class SharedCollection {
     );
   }
 
+  /// Another shortcut to interact with [SharedDocument] that not so short compared to [doc].
+  ///
+  /// ```dart
+  /// await Shared.col(id).document(id)...
+  /// await Shared.collection(id).document(id)...
+  /// ```
   SharedDocument document(String id) {
     return doc(id);
   }
 
+  /// A shortcut to interact with [SharedManyDocument] trough [SharedCollection].
+  ///
+  /// ```dart
+  /// await Shared.col(id).docs(id)...
+  /// await Shared.collection(id).docs(id)...
+  /// ```
   SharedManyDocument docs(List<String> ids) {
     return SharedManyDocument(ids, collection: this);
   }
 
+  /// Another shortcut to interact with [SharedManyDocument] that not so short compared to [docs].
+  ///
+  /// ```dart
+  /// await Shared.col(id).documents(id)...
+  /// await Shared.collection(id).documents(id)...
+  /// ```
   SharedManyDocument documents(List<String> ids) {
     return docs(ids);
   }

@@ -2,13 +2,21 @@ import 'dart:convert';
 
 import 'package:local_shared/local_shared.dart';
 
-export 'shared_extension.dart' hide StringExtension, JSONExtension;
+export 'shared_extension.dart'
+    hide StringExtension, ListExtension, JSONExtension;
 
+/// Extension methods for enhancing [String] functionality.
 extension StringExtension on String {
+  /// Decodes a JSON-formatted string into a [JSON] object.
   JSON get decode => jsonDecode(this);
 }
 
+/// Extension methods for enhancing [List] functionality.
 extension ListExtension on List {
+  /// Validates the types of entries in a list against a provided list of allowed types.
+  ///
+  /// The [type] parameter specifies the list of allowed types.
+  /// The [key] parameter is used in error messages to indicate the context of the validation.
   void validate(List<Type> type, {required String key}) {
     for (final entry in this) {
       if (entry is JSON) {
@@ -25,7 +33,12 @@ extension ListExtension on List {
   }
 }
 
+/// Extension methods for enhancing [JSON] functionality.
 extension JSONExtension on JSON {
+  /// Validates the types of entries in a [JSON] object against a provided list of allowed types.
+  ///
+  /// The [type] parameter specifies the list of allowed types.
+  /// The [key] parameter is used in error messages to indicate the context of the validation.
   void validate(List<Type> type, {required String key}) {
     for (final entry in entries) {
       if (entry.value is JSON) {
@@ -41,6 +54,12 @@ extension JSONExtension on JSON {
     }
   }
 
+  /// Merges the current [JSON] object with another [JSON] object.
+  ///
+  /// The [value] parameter is the [JSON] object to merge into the current object.
+  /// The merge operation combines the key-value pairs from both objects.
+  /// If a key exists in both objects and the values are themselves [JSON] or [Map] objects,
+  /// the values are recursively merged.
   JSON merge(JSON value) {
     Map<String, dynamic> result = Map.from(this);
 
@@ -55,6 +74,9 @@ extension JSONExtension on JSON {
     return result;
   }
 
+  /// Encodes the [JSON] object into a JSON-formatted string.
+  ///
+  /// The method also performs a validation check on the types of entries in the [JSON] object.
   String get encode {
     for (var entry in entries) {
       (entry.value as JSON).validate(
@@ -65,5 +87,8 @@ extension JSONExtension on JSON {
     return jsonEncode(this);
   }
 
+  /// Converts the [JSON] object into a list of [JSON] objects.
+  ///
+  /// Each entry in the original [JSON] object is converted to a [JSON] object and added to the list.
   List<JSON> get toList => [for (var item in entries) item.value];
 }
