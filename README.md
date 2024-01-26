@@ -173,5 +173,17 @@ documents: [
 ]}
 ```
 
+## Extension
+To make things easier, there's extension to handle response data of `SharedResponse`.
+if you want to expect SharedResponse return `JSON?`, call this method:
+```dart
+JSON? result = await Shared.col(id).doc(id).read().one;
+```
+
+or if you expecting SharedResponse to return `List<JSON>?`, call this method:
+```dart
+List<JSON>? result = await Shared.col(id).read().many;
+```
+
 ## Example
 - <a href="https://github.com/Nialixus/local_shared/blob/main/example/lib/main.dart">local_shared/example/lib/main.dart</a>

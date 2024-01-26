@@ -92,3 +92,75 @@ extension JSONExtension on JSON {
   /// Each entry in the original [JSON] object is converted to a [JSON] object and added to the list.
   List<JSON> get toList => [for (var item in entries) item.value];
 }
+
+/// Extension on [SharedResponse] providing convenience getters for handling
+/// responses with one or many data items.
+extension SharedResponseExtension on SharedResponse {
+  /// Except a single JSON data if the response is [SharedOne].
+  ///
+  /// Returns `null` if the response is not [SharedOne] type.
+  ///
+  /// ```dart
+  /// final result = await Shared.col(id).doc(id).read();
+  /// JSON? value = result.one;
+  /// ```
+  JSON? get one {
+    if (this is SharedOne || this is SharedResponse<JSON>) {
+      return data as JSON?;
+    } else {
+      return null;
+    }
+  }
+
+  /// Expect a list of JSON data if the response is [SharedMany].
+  ///
+  /// Returns `null` if the response is not [SharedMany] type.
+  ///
+  /// ```dart
+  /// final result = await Shared.col(id).read();
+  /// List<JSON>? value = result.many;
+  /// ```
+  List<JSON>? get many {
+    if (this is SharedMany || this is SharedResponse<List<JSON>>) {
+      return data as List<JSON>?;
+    } else {
+      return null;
+    }
+  }
+}
+
+/// Extension on Future of [SharedResponse] providing convenience getters for handling
+/// asynchronous responses with one or many data items.
+extension FutureSharedResponseExtension on Future<SharedResponse> {
+  /// Retrieves a single JSON data when the response is [SharedOne].
+  ///
+  /// Returns `null` if the response is not [SharedOne] type.
+  ///
+  /// ```dart
+  /// JSON? result = await Shared.col(id).doc(id).read().one;
+  /// ```
+  Future<JSON?> get one async {
+    final response = await this;
+    if (response is SharedOne || response is SharedResponse<JSON>) {
+      return response.data as JSON?;
+    } else {
+      return null;
+    }
+  }
+
+  /// Retrieves a list of JSON data when the response is [SharedMany].
+  ///
+  /// Returns `null` if the response is not [SharedMany] type.
+  ///
+  /// ```dart
+  /// List<JSON>? result = await Shared.col(id).read().many;
+  /// ```
+  Future<List<JSON>?> get many async {
+    final response = await this;
+    if (response is SharedMany || response is SharedResponse<List<JSON>>) {
+      return response.data as List<JSON>?;
+    } else {
+      return null;
+    }
+  }
+}
