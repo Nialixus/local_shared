@@ -23,7 +23,7 @@ dependencies:
 
 ## Initialize
 
-Start by initializing the LocalShared instance in your main function, ensuring Flutter is properly initialized.
+Start by initializing the LocalShared instance in your main function, after ensuring Flutter is properly initialized.
 ```dart
 import 'package:local_shared/local_shared.dart';
 
