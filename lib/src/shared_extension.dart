@@ -95,7 +95,7 @@ extension JSONExtension on JSON {
 
 /// Extension on [SharedResponse] providing convenience getters for handling
 /// responses with one or many data items.
-extension SharedResponseExtension on SharedResponse {
+extension SharedResponseExtension on SharedResponse<Object> {
   /// Except a single JSON data if the response is [SharedOne].
   ///
   /// Returns `null` if the response is not [SharedOne] type.
@@ -131,7 +131,7 @@ extension SharedResponseExtension on SharedResponse {
 
 /// Extension on Future of [SharedResponse] providing convenience getters for handling
 /// asynchronous responses with one or many data items.
-extension FutureSharedResponseExtension on Future<SharedResponse> {
+extension FutureSharedResponseExtension on Future<SharedResponse<Object>> {
   /// Retrieves a single JSON data when the response is [SharedOne].
   ///
   /// Returns `null` if the response is not [SharedOne] type.
