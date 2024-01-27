@@ -7,7 +7,7 @@ part of '../local_shared.dart';
 /// ---
 /// ```dart
 /// // Create multiple documents within a collection
-/// final result = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).create((id) => {'key': 'value for $id'});
+/// final result = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).create((index) => {'key': 'value for $id'});
 /// print(result); // SharedMany(success: true, message: '...', data: <JSON>[])
 /// ```
 /// ---
@@ -19,7 +19,7 @@ part of '../local_shared.dart';
 /// ---
 /// ```dart
 /// // Update the contents of multiple documents within a collection
-/// final response = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).update((id) => {'newKey': 'newValue for $id'});
+/// final response = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).update((index) => {'newKey': 'newValue for $id'});
 /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
 /// ```
 /// ---
@@ -39,7 +39,7 @@ class SharedManyDocument {
       : assert(ids.length != 0, 'Document ids shouln\'t be empty');
 
   /// List of unique identifiers for the documents.
-  final List<String> ids;
+  final Iterable<String> ids;
 
   /// The [SharedCollection] to which these documents belong.
   final SharedCollection collection;
@@ -51,7 +51,7 @@ class SharedManyDocument {
   /// Returns a [SharedResponse] of [SharedMany] indicating the success or [SharedNone] for failure of the operation.
   ///
   /// ```dart
-  /// final response = await Shared.col('myCollection').docs(['id1', 'id2']).create((id) => {'key': 'value for $id'});
+  /// final response = await Shared.col('myCollection').docs(['id1', 'id2']).create((index) => {'key': 'value for $id'});
   /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> create(
@@ -86,8 +86,12 @@ class SharedManyDocument {
         }
 
         // [5] Creating the documents 🎉.
-        bool result = await Shared.preferences.setString(this.collection.id,
-            ({...collection, for (int i=0;i<ids.length;i++) ids[i]: document(i)}).encode);
+        bool result = await Shared.preferences.setString(
+            this.collection.id,
+            ({
+              ...collection,
+              for (int i = 0; i < ids.length; i++) ids.elementAt(i): document(i)
+            }).encode);
 
         // [6] Notify the stream about the change in the collection 📣.
         this.collection._controller.add({
@@ -178,7 +182,7 @@ class SharedManyDocument {
   /// Returns a [SharedResponse] of [SharedMany] indicating the success or [SharedNone] for failure of the update.
   ///
   /// ```dart
-  /// final response = await Shared.col('myCollection').docs(['id1', 'id2']).update((id) => {'newKey': 'newValue for $id'});
+  /// final response = await Shared.col('myCollection').docs(['id1', 'id2']).update((index) => {'newKey': 'newValue for $id'});
   /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> update(
@@ -218,8 +222,9 @@ class SharedManyDocument {
         this.collection.id,
         {
           ...collection,
-          for (int i=0;i<ids.length;i++)
-            ids[i]: (collection[ids[i]] as JSON? ?? {}).merge(document(i))
+          for (int i = 0; i < ids.length; i++)
+            ids.elementAt(i):
+                (collection[ids.elementAt(i)] as JSON? ?? {}).merge(document(i))
         }.encode,
       );
 
