@@ -6,7 +6,7 @@
 # Local Shared
 A SharedPreferences-based local storage, designed as an alternative to the localstore package
 
-## Preview | [View Demo](https://milestones.inidia.app/goal?category=ongoing+finished&sort_by=name&name_ascending=true&date_ascending=true)
+## Preview | [View Demo](https://milestones.inidia.app)
 [Local Shared Preview](https://github.com/Nialixus/local_shared/assets/45191605/dabedd36-bed6-4fc9-a1d6-6737ff70bcdc)
 
 ## Install
