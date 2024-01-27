@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 export 'package:local_shared/local_shared.dart'
-    hide StringExtension, ListExtension, JSONExtension;
+    hide _StringExtension, _ListExtension, _JSONExtension;
 
 part 'src/shared_collection.dart';
 part 'src/shared_document.dart';
@@ -41,8 +41,7 @@ class LocalShared {
   /// ```dart
   /// LocalShared('app.inidia.example');
   /// ```
-  LocalShared(this.id)
-      : assert(id.isNotEmpty, 'LocalShared id shouldn\'t be empty');
+  LocalShared([this.id = '']);
 
   /// The unique identifier for this [LocalShared] database instance
   /// which will be used as prefix for [SharedPreferences].
@@ -69,7 +68,7 @@ class LocalShared {
   /// }
   /// ```
   Future<void> initialize() async {
-    SharedPreferences.setPrefix('flutter.$id.');
+    if (id.isNotEmpty) SharedPreferences.setPrefix('flutter.$id.');
     _db = await SharedPreferences.getInstance();
   }
 
