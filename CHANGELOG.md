@@ -1,2 +1,5 @@
 ## 1.0.0
-* Initial Release
+* Initial release
+
+## 1.0.1
+* Update documentation
