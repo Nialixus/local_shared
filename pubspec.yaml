@@ -1,5 +1,5 @@
 name: local_shared
-description: SharedPreferences-based local storage, designed as a multi-platform alternative to the localstore package
+description: A SharedPreferences-based local storage, designed as an alternative to the localstore package
 version: 1.0.0
 homepage: https://inidia.app
 repository: https://github.com/Nialixus/local_shared.git
