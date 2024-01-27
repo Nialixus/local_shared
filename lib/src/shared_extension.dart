@@ -1,13 +1,13 @@
 part of '../local_shared.dart';
 
 /// Extension methods for enhancing [String] functionality.
-extension StringExtension on String {
+extension _StringExtension on String {
   /// Decodes a JSON-formatted string into a [JSON] object.
   JSON get decode => jsonDecode(this);
 }
 
 /// Extension methods for enhancing [List] functionality.
-extension ListExtension on List {
+extension _ListExtension on List {
   /// Validates the types of entries in a list against a provided list of allowed types.
   ///
   /// The [type] parameter specifies the list of allowed types.
@@ -29,7 +29,7 @@ extension ListExtension on List {
 }
 
 /// Extension methods for enhancing [JSON] functionality.
-extension JSONExtension on JSON {
+extension _JSONExtension on JSON {
   /// Validates the types of entries in a [JSON] object against a provided list of allowed types.
   ///
   /// The [type] parameter specifies the list of allowed types.
