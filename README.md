@@ -1,12 +1,12 @@
-# Local Shared
+
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Nialixus/local_shared/main/logo.png" alt="Inidia.app Local Shared Logo" width="150">
-  <br>
+  <img src="https://raw.githubusercontent.com/Nialixus/local_shared/main/logo.png" alt="Inidia.app Local Shared Logo" width="150"><br>
   <a href='https://pub.dev/packages/local_shared'><img src='https://img.shields.io/pub/v/local_shared.svg?logo=flutter&color=blue&style=flat-square'/></a>
-  <br><br>
-  <strong>A SharedPreferences-based local storage, designed as an alternative to the localstore package</strong>
 </p>
+
+# Local Shared
+A SharedPreferences-based local storage, designed as an alternative to the localstore package
 
 ## Preview | [View Demo](https://milestones.inidia.app/goal?category=ongoing+finished&sort_by=name&name_ascending=true&date_ascending=true)
 [Local Shared Preview](https://github.com/Nialixus/local_shared/assets/45191605/dabedd36-bed6-4fc9-a1d6-6737ff70bcdc)
