@@ -45,10 +45,10 @@ class MyApp extends StatelessWidget {
                 ),
               ),
             ),
-            ...List.generate(
-              3,
-              (x) {
-                return Container(
+            
+            
+              
+               for (int x=0:x<3;x++) Container(
                   padding: const EdgeInsets.only(bottom: 20.0),
                   alignment: Alignment.center,
                   child: TextButton.icon(
@@ -79,9 +79,9 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                   ),
-                );
-              },
-            ),
+                )
+              
+            ,
             const Spacer(),
           ],
         ),
