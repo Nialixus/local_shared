@@ -284,7 +284,7 @@ class SharedCollection {
   /// await Shared.col(id).docs(id)...
   /// await Shared.collection(id).docs(id)...
   /// ```
-  SharedManyDocument docs(List<String> ids) {
+  SharedManyDocument docs(Iterable<String> ids) {
     return SharedManyDocument(ids, collection: this);
   }
 
@@ -294,7 +294,7 @@ class SharedCollection {
   /// await Shared.col(id).documents(id)...
   /// await Shared.collection(id).documents(id)...
   /// ```
-  SharedManyDocument documents(List<String> ids) {
+  SharedManyDocument documents(Iterable<String> ids) {
     return docs(ids);
   }
 
