@@ -1,5 +1,3 @@
-
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/Nialixus/local_shared/main/logo.png" alt="Inidia.app Local Shared Logo" width="150"><br>
   <a href='https://pub.dev/packages/local_shared'><img src='https://img.shields.io/pub/v/local_shared.svg?logo=flutter&color=blue&style=flat-square'/></a>
