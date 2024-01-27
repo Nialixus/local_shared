@@ -8,19 +8,19 @@ part of '../local_shared.dart';
 /// ```dart
 /// // Create multiple documents within a collection
 /// final result = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).create((id) => {'key': 'value for $id'});
-/// print(result); // SharedMany(success: true, message: '...', data: [{'key': 'value for id1'}, {'key': 'value for id2'}, {'key': 'value for id3'}])
+/// print(result); // SharedMany(success: true, message: '...', data: <JSON>[])
 /// ```
 /// ---
 /// ```dart
 /// // Read the contents of multiple documents within a collection
 /// final response = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).read();
-/// print(response); // SharedMany(success: true, message: '...', data: [{'key': 'value for id1'}, {'key': 'value for id2'}, {'key': 'value for id3'}])
+/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
 /// ```
 /// ---
 /// ```dart
 /// // Update the contents of multiple documents within a collection
 /// final response = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).update((id) => {'newKey': 'newValue for $id'});
-/// print(response); // SharedMany(success: true, message: '...', data: [{'newKey': 'newValue for id1'}, {'newKey': 'newValue for id2'}, {'newKey': 'newValue for id3'}])
+/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
 /// ```
 /// ---
 /// ```dart
@@ -52,7 +52,7 @@ class SharedManyDocument {
   ///
   /// ```dart
   /// final response = await Shared.col('myCollection').docs(['id1', 'id2']).create((id) => {'key': 'value for $id'});
-  /// print(response); // SharedMany(success: true, message: '...', data: [{'key': 'value for id1'}, {'key': 'value for id2'}])
+  /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> create(
     JSON Function(String id) document, {
@@ -126,7 +126,7 @@ class SharedManyDocument {
   ///
   /// ```dart
   /// final response = await Shared.col('myCollection').docs(['id1', 'id2']).read();
-  /// print(response); // SharedMany(success: true, message: '...', data: [{'key': 'value for id1'}, {'key': 'value for id2'}])
+  /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> read({bool skip = true}) async {
     try {
@@ -179,7 +179,7 @@ class SharedManyDocument {
   ///
   /// ```dart
   /// final response = await Shared.col('myCollection').docs(['id1', 'id2']).update((id) => {'newKey': 'newValue for $id'});
-  /// print(response); // SharedMany(success: true, message: '...', data: [{'newKey': 'newValue for id1'}, {'newKey': 'newValue for id2'}])
+  /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> update(
     JSON Function(String id) document, {

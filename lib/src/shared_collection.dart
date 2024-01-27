@@ -83,7 +83,11 @@ class SharedCollection {
         message: result
             ? 'The collection with ID `$id` has been successfully ${replace ? 'recreated' : 'created'}.'
             : 'Failed to ${replace ? 'recreate' : 'create'} the collection with ID `$id`. Please try again.',
-        data: Shared.preferences.getString(id)?.decode.toList,
+        data: [
+          for (var item
+              in (Shared.preferences.getString(id)?.decode ?? {}).entries)
+            item.value
+        ],
       );
     } catch (e) {
       // [6] Returning bad news 🧨.
@@ -115,7 +119,7 @@ class SharedCollection {
         success: true,
         message:
             'The collection with ID `$id` has been successfully retrieved.',
-        data: collection.toList,
+        data: [for (var item in collection.entries) item.value],
       );
     } catch (e) {
       // [4] Returning bad news 🧨.
@@ -189,15 +193,20 @@ class SharedCollection {
 
         // [9] Returning the result of migrating this collection 🚀.
         return SharedMany(
-            success: delete,
-            message: delete
-                ? 'Successfully migrated collection from ID `${this.id}` to ID `$id`.'
-                : 'Failed to clear the old collection after migrating to the new ID. '
-                    'Please try deleting the collection with ID `${this.id}` manually.',
-            data: Shared.preferences
-                .getString(delete ? id : this.id)
-                ?.decode
-                .toList);
+          success: delete,
+          message: delete
+              ? 'Successfully migrated collection from ID `${this.id}` to ID `$id`.'
+              : 'Failed to clear the old collection after migrating to the new ID. '
+                  'Please try deleting the collection with ID `${this.id}` manually.',
+          data: [
+            for (var item in (Shared.preferences
+                        .getString(delete ? id : this.id)
+                        ?.decode ??
+                    {})
+                .entries)
+              item.value
+          ],
+        );
       }
 
       // [10] Sending bad news 💀.

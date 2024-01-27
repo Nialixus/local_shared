@@ -2,16 +2,18 @@ library local_shared;
 
 import 'dart:async';
 import 'dart:convert';
-
-import 'package:local_shared/src/shared_extension.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+export 'package:local_shared/local_shared.dart'
+    hide StringExtension, ListExtension, JSONExtension;
 
 part 'src/shared_collection.dart';
 part 'src/shared_document.dart';
+part 'src/shared_extension.dart';
 part 'src/shared_many_document.dart';
 part 'src/shared_response.dart';
 
-/// A typedef for a JSON representation, which is a Map<String, dynamic> values.
+/// Define Map<String, dynamic> as JSON values.
 typedef JSON = Map<String, dynamic>;
 
 /// A shorter term for [LocalShared].
