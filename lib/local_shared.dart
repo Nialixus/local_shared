@@ -1,3 +1,4 @@
+/// A SharedPreferences-based local storage, designed as an alternative to the localstore package
 library local_shared;
 
 import 'dart:async';
