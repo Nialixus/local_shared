@@ -1,16 +1,15 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Nialixus/local_shared/main/logo.png" alt="Inidia.app Local Shared Logo" width="150">
-</p>
-
 # Local Shared
 
-<a href='https://pub.dev/packages/local_shared'><img src='https://img.shields.io/pub/v/local_shared.svg?logo=flutter&color=blue&style=flat-square'/></a>\
-\
-SharedPreferences-based local storage, designed as a multi-platform alternative to the localstore package
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Nialixus/local_shared/main/logo.png" alt="Inidia.app Local Shared Logo" width="150">
+  <br>
+  <a href='https://pub.dev/packages/local_shared'><img src='https://img.shields.io/pub/v/local_shared.svg?logo=flutter&color=blue&style=flat-square'/></a>
+  <br><br>
+  <strong>A SharedPreferences-based local storage, designed as an alternative to the localstore package</strong>
+</p>
 
-## Preview
-
-![screen-capture-_1_](https://user-images.githubusercontent.com/45191605/162557654-6e98d7be-e198-4089-bc13-6b52f7e4a6e2.gif)
+## Preview | [View Demo](https://milestones.inidia.app/goal?category=ongoing+finished&sort_by=name&name_ascending=true&date_ascending=true)
+[Local Shared Preview](https://github.com/Nialixus/local_shared/assets/45191605/dabedd36-bed6-4fc9-a1d6-6737ff70bcdc)
 
 ## Install
 
