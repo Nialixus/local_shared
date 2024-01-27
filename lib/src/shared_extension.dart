@@ -75,7 +75,7 @@ extension JSONExtension on JSON {
   String get encode {
     for (var entry in entries) {
       (entry.value as JSON).validate(
-        [String, int, double, bool, List, JSON],
+        [String, int, double, bool, List, JSON, Null],
         key: entry.key,
       );
     }
