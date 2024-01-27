@@ -55,7 +55,7 @@ class SharedManyDocument {
   /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> create(
-    JSON Function(String id) document, {
+    JSON Function(int index) document, {
     bool replace = false,
     bool force = true,
   }) async {
@@ -87,7 +87,7 @@ class SharedManyDocument {
 
         // [5] Creating the documents 🎉.
         bool result = await Shared.preferences.setString(this.collection.id,
-            ({...collection, for (var id in ids) id: document(id)}).encode);
+            ({...collection, for (int i=0;i<ids.length;i++) ids[i]: document(i)}).encode);
 
         // [6] Notify the stream about the change in the collection 📣.
         this.collection._controller.add({
@@ -182,7 +182,7 @@ class SharedManyDocument {
   /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> update(
-    JSON Function(String id) document, {
+    JSON Function(int index) document, {
     bool force = false,
   }) async {
     try {
@@ -218,8 +218,8 @@ class SharedManyDocument {
         this.collection.id,
         {
           ...collection,
-          for (var id in ids)
-            id: (collection[id] as JSON? ?? {}).merge(document(id))
+          for (int i=0;i<ids.length;i++)
+            ids[i]: (collection[ids[i]] as JSON? ?? {}).merge(document(i))
         }.encode,
       );
 
