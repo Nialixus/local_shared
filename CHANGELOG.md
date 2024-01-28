@@ -6,3 +6,6 @@
 
 ## 1.0.2
 * Update link
+
+## 1.0.3
+* Update README

@@ -5,9 +5,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-export 'package:local_shared/local_shared.dart'
-    hide _StringExtension, _ListExtension, _JSONExtension;
-
 part 'src/shared_collection.dart';
 part 'src/shared_document.dart';
 part 'src/shared_extension.dart';

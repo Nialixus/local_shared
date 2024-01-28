@@ -45,43 +45,39 @@ class MyApp extends StatelessWidget {
                 ),
               ),
             ),
-            
-            
-              
-               for (int x=0:x<3;x++) Container(
-                  padding: const EdgeInsets.only(bottom: 20.0),
-                  alignment: Alignment.center,
-                  child: TextButton.icon(
-                    onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const [
-                                  CollectionCRUD(),
-                                  DocumentCRUD(),
-                                  ManyDocumentCRUD()
-                                ][x])),
-                    style: const ButtonStyle(
-                      backgroundColor: MaterialStatePropertyAll(Colors.black),
-                    ),
-                    icon: Icon(
-                      [
-                        Icons.folder,
-                        Icons.book,
-                        Icons.collections_bookmark_rounded
-                      ][x],
-                      color: Colors.white,
-                    ),
-                    label: SizedBox(
-                      width: 150.0,
-                      child: Text(
-                        ['Collection', 'Document', 'Many Document'][x],
-                        style: const TextStyle(color: Colors.white),
-                      ),
+            for (int x = 0; x < 3; x++)
+              Container(
+                padding: const EdgeInsets.only(bottom: 20.0),
+                alignment: Alignment.center,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const [
+                                CollectionCRUD(),
+                                DocumentCRUD(),
+                                ManyDocumentCRUD()
+                              ][x])),
+                  style: const ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll(Colors.black),
+                  ),
+                  icon: Icon(
+                    [
+                      Icons.folder,
+                      Icons.book,
+                      Icons.collections_bookmark_rounded
+                    ][x],
+                    color: Colors.white,
+                  ),
+                  label: SizedBox(
+                    width: 150.0,
+                    child: Text(
+                      ['Collection', 'Document', 'Many Document'][x],
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
-                )
-              
-            ,
+                ),
+              ),
             const Spacer(),
           ],
         ),
