@@ -35,10 +35,12 @@ typedef Shared = LocalShared;
 class LocalShared {
   /// Default constructor of [LocalShared] containing [id] to be used as prefix in [SharedPreferences].
   ///
+  /// Let [id] empty if you want to use default prefix of [SharedPreferences].
+  ///
   /// ```dart
   /// LocalShared('app.inidia.example');
   /// ```
-  LocalShared([this.id = '']);
+  LocalShared(this.id);
 
   /// The unique identifier for this [LocalShared] database instance
   /// which will be used as prefix for [SharedPreferences].
