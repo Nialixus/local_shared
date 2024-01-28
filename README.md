@@ -3,11 +3,11 @@
   <a href='https://pub.dev/packages/local_shared'><img src='https://img.shields.io/pub/v/local_shared.svg?logo=flutter&color=blue&style=flat-square'/></a>
 </p>
 
-# Local Shared
-A SharedPreferences-based local storage, designed as an alternative to the localstore package
+# Local Shared | [View Demo](https://milestones.inidia.app)
 
-## Preview | [View Demo](https://milestones.inidia.app)
 ![LocalShared.gif](https://github.com/Nialixus/local_shared/assets/45191605/46bd62d9-7993-4de2-af78-c10650eb5b8d)
+
+A SharedPreferences-based local storage, designed as an alternative to the localstore package
 
 ## Install
 
