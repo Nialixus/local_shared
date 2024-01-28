@@ -173,12 +173,12 @@ Result:
 To simplify matters, there's an extension to handle response data from SharedResponse. 
 If you're expecting SharedResponse to return `JSON?`, call this method:
 ```dart
-JSON? result = await Shared.col(id).doc(id).read().one;
+JSON? result = await Shared.col(id).doc(id).read().one();
 ```
 
 Alternatively, if you're expecting SharedResponse to return a `List<JSON>?`, call this method:
 ```dart
-List<JSON>? result = await Shared.col(id).read().many;
+List<JSON>? result = await Shared.col(id).read().many();
 ```
 
 ## Example
