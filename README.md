@@ -7,7 +7,7 @@
 A SharedPreferences-based local storage, designed as an alternative to the localstore package
 
 ## Preview | [View Demo](https://milestones.inidia.app)
-[Local Shared Preview](https://github.com/Nialixus/local_shared/assets/45191605/dabedd36-bed6-4fc9-a1d6-6737ff70bcdc)
+![LocalShared.gif](https://github.com/Nialixus/local_shared/assets/45191605/46bd62d9-7993-4de2-af78-c10650eb5b8d)
 
 ## Install
 
@@ -37,7 +37,7 @@ typedef DB = LocalShared;
 ```
 
 ## Collection | [View Code](https://github.com/Nialixus/local_shared/blob/main/example/lib/src/collection_crud.dart)
-[Collection CRUD Preview](https://github.com/Nialixus/local_shared/assets/45191605/cadda35c-32c8-4c60-9848-a2099e2377f3)
+![LocalShared Collection.gif](https://github.com/Nialixus/local_shared/assets/45191605/6f5be9e9-892b-4381-9691-98c7cc92c92b)
 
 This guide illustrates fundamental CRUD (Create, Read, Update, Delete) operations for collection management. Interacting with it can be achieved through the following methods: `Shared.col(id)` or `Shared.collection(id)`.
 
@@ -70,7 +70,7 @@ print(response): // SharedNone(success: true, message: '....')
 ```
 
 ## Document | [View Code](https://github.com/Nialixus/local_shared/blob/main/example/lib/src/document_crud.dart)
-[Document CRUD Preview](https://github.com/Nialixus/local_shared/assets/45191605/e8848c32-b9c2-4406-a0d4-ae8b0caad64f)
+![LocalShared Document.gif](https://github.com/Nialixus/local_shared/assets/45191605/f896b7fe-2658-4911-936a-e0ae0d815588)
 
 This guide elaborates on the essential CRUD (Create, Read, Update, Delete) operations for document management within collections. Interacting with document can be achieved through the following methods: `Shared.col(id).doc(id)` or `Shared.collection(id).document(id)`.
 
@@ -103,7 +103,7 @@ print(response): // SharedNone(success: true, message: '...')
 ```
 
 ## Many Document | [View Code](https://github.com/Nialixus/local_shared/blob/main/example/lib/src/many_document_crud.dart)
-[Many Document CRUD Preview](https://github.com/Nialixus/local_shared/assets/45191605/8cb30d72-ec7e-4b4c-8516-c4f12702e879)
+![LocalShared Many Document.gif](https://github.com/Nialixus/local_shared/assets/45191605/aacd00d3-b1ae-41ff-822d-c70595cea62f)
 
 This guide details the fundamental CRUD (Create, Read, Update, Delete) operations for the management of multiple documents within collections. Interacting with this can be achieved through the following methods: `Shared.col(id).docs([id1, id2])` or `Shared.collection(id).documents([id1, id2])`.
 
