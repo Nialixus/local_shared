@@ -94,7 +94,7 @@ extension SharedResponseExtension on SharedResponse {
   /// final result = await Shared.col(id).doc(id).read();
   /// JSON? value = result.one;
   /// ```
-  JSON? get one {
+  JSON? one() {
     if (this is SharedOne || this is SharedResponse<JSON>) {
       return data as JSON?;
     } else {
@@ -110,7 +110,7 @@ extension SharedResponseExtension on SharedResponse {
   /// final result = await Shared.col(id).read();
   /// List<JSON>? value = result.many;
   /// ```
-  List<JSON>? get many {
+  List<JSON>? many() {
     if (this is SharedMany || this is SharedResponse<List<JSON>>) {
       return data as List<JSON>?;
     } else {
@@ -129,7 +129,7 @@ extension FutureSharedResponseExtension on Future<SharedResponse> {
   /// ```dart
   /// JSON? result = await Shared.col(id).doc(id).read().one;
   /// ```
-  Future<JSON?> get one async {
+  Future<JSON?> one() async {
     final response = await this;
     if (response is SharedOne || response is SharedResponse<JSON>) {
       return response.data as JSON?;
@@ -145,7 +145,7 @@ extension FutureSharedResponseExtension on Future<SharedResponse> {
   /// ```dart
   /// List<JSON>? result = await Shared.col(id).read().many;
   /// ```
-  Future<List<JSON>?> get many async {
+  Future<List<JSON>?> many () async {
     final response = await this;
     if (response is SharedMany || response is SharedResponse<List<JSON>>) {
       return response.data as List<JSON>?;
