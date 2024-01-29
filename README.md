@@ -15,7 +15,7 @@ Add this line to your pubspec.yaml.
 
 ```yaml
 dependencies:
-  local_shared: ^1.0.3
+  local_shared: ^1.0.4
 ```
 
 ## Initialize
