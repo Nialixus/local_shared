@@ -12,3 +12,6 @@
 
 ## 1.0.4
 * Update extension syntax
+
+## 1.0.5
+* Remove assertion

@@ -34,10 +34,7 @@ class SharedDocument {
   ///
   /// The [id] parameter is the unique identifier for the document, and the [collection] parameter
   /// specifies the [SharedCollection] to which the document belongs.
-  ///
-  /// Throws an assertion error if [id] is empty.
-  const SharedDocument(this.id, {required this.collection})
-      : assert(id.length != 0, 'Document id shouldn\'t be empty');
+  const SharedDocument(this.id, {required this.collection});
 
   /// The unique identifier for this document.
   final String id;

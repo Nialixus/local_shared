@@ -34,11 +34,8 @@ class SharedCollection {
   ///
   /// The [id] parameter is the unique identifier for the collection, and the [controller] is used
   /// to listen for changes triggered by create, update, and delete actions on the collection.
-  ///
-  /// Throws an assertion error if [id] is empty.
   SharedCollection(this.id, {required StreamController<JSON> controller})
-      : _controller = controller,
-        assert(id.isNotEmpty, 'Collection id shouln\'t be empty');
+      : _controller = controller;
 
   /// The unique identifier for this collection.
   final String id;

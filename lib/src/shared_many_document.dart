@@ -33,10 +33,7 @@ class SharedManyDocument {
   ///
   /// The [ids] parameter is a list of unique identifiers for the documents, and the [collection] parameter
   /// specifies the [SharedCollection] to which the documents belong.
-  ///
-  /// Throws an assertion error if [ids] is empty.
-  const SharedManyDocument(this.ids, {required this.collection})
-      : assert(ids.length != 0, 'Document ids shouln\'t be empty');
+  const SharedManyDocument(this.ids, {required this.collection});
 
   /// List of unique identifiers for the documents.
   final Iterable<String> ids;
