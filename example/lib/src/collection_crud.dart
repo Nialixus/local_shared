@@ -99,7 +99,7 @@ class _A extends State<CollectionCRUD> {
                           expands: true,
                           maxLines: null,
                           style:
-                              TextStyle(color: Colors.black.withOpacity(0.65)),
+                              TextStyle(color: Colors.black.withValues(alpha:  0.65),),
                           decoration: InputDecoration(
                             labelText: ['Response', 'JSON'][i],
                             labelStyle: const TextStyle(color: Colors.black),

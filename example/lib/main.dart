@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
                                 ManyDocumentCRUD()
                               ][x])),
                   style: const ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(Colors.black),
+                    backgroundColor: WidgetStatePropertyAll(Colors.black),
                   ),
                   icon: Icon(
                     [

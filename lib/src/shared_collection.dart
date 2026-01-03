@@ -58,7 +58,7 @@ class SharedCollection {
   }) async {
     try {
       // [1] Get collection 📂.
-      JSON? collection = Shared.preferences.getString(id)?.decode;
+      JSON? collection = await Shared._read(id);
 
       // [2] Check if its allowed to create by replacing an old collection or not 💪.
       if (collection != null && !replace) {
@@ -69,7 +69,7 @@ class SharedCollection {
       }
 
       // [3] Create the collection 🎉.
-      bool result = await Shared.preferences.setString(id, jsonEncode({}));
+      bool result = await Shared._create(id, {});
 
       // [4] Notify the stream about the change in the collection 📣.
       _controller.add({'id': id, 'documents': []});
@@ -81,9 +81,7 @@ class SharedCollection {
             ? 'The collection with ID `$id` has been successfully ${replace ? 'recreated' : 'created'}.'
             : 'Failed to ${replace ? 'recreate' : 'create'} the collection with ID `$id`. Please try again.',
         data: [
-          for (var item
-              in (Shared.preferences.getString(id)?.decode ?? {}).entries)
-            item.value
+          for (var item in ((await Shared._read(id)) ?? {}).entries) item.value
         ],
       );
     } catch (e) {
@@ -103,7 +101,7 @@ class SharedCollection {
   Future<SharedResponse> read() async {
     try {
       // [1] Get collection 📂.
-      JSON? collection = Shared.preferences.getString(id)?.decode;
+      JSON? collection = await Shared._read(id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -141,10 +139,10 @@ class SharedCollection {
   }) async {
     try {
       // [1] Get current collection 📂.
-      JSON? collection = Shared.preferences.getString(this.id)?.decode;
+      JSON? collection = await Shared._read(this.id);
 
       // [2] Get targeted collection 📂.
-      JSON? target = Shared.preferences.getString(id)?.decode;
+      JSON? target = await Shared._read(id);
 
       // [3] Check if the current collection id is exactly the same with the new one or not 💩.
       if (this.id == id) {
@@ -171,22 +169,20 @@ class SharedCollection {
       }
 
       // [6] Creating new collection 🎉.
-      bool result =
-          await Shared.preferences.setString(id, jsonEncode(collection ?? {}));
+      bool result = await Shared._create(id, collection ?? {});
 
       // [7] Notify the stream about the change in the collection 📣.
       _controller.add({
         'id': id,
         'documents': [
-          for (var item
-              in (Shared.preferences.getString(id)?.decode ?? {}).entries)
+          for (var item in ((await Shared._read(id)) ?? {}).entries)
             {'id': item.key, 'data': item.value}
         ]
       });
 
       if (result) {
         // [8] Delete the old collection 🧹.
-        bool delete = await Shared.preferences.remove(this.id);
+        bool delete = await Shared._delete(this.id);
 
         // [9] Returning the result of migrating this collection 🚀.
         return SharedMany(
@@ -196,11 +192,8 @@ class SharedCollection {
               : 'Failed to clear the old collection after migrating to the new ID. '
                   'Please try deleting the collection with ID `${this.id}` manually.',
           data: [
-            for (var item in (Shared.preferences
-                        .getString(delete ? id : this.id)
-                        ?.decode ??
-                    {})
-                .entries)
+            for (var item
+                in ((await Shared._read(delete ? id : this.id)) ?? {}).entries)
               item.value
           ],
         );
@@ -225,7 +218,7 @@ class SharedCollection {
   Future<SharedResponse> delete() async {
     try {
       // [1] Get collection 📂.
-      JSON? collection = Shared.preferences.getString(id)?.decode;
+      JSON? collection = await Shared._read(id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -234,7 +227,7 @@ class SharedCollection {
       }
 
       // [3] Deleting the collection 🧹.
-      bool result = await Shared.preferences.remove(id);
+      bool result = await Shared._delete(id);
 
       // [4] Notify the stream about the change in the collection 📣.
       _controller.add({});

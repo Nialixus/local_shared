@@ -3,7 +3,10 @@ library local_shared;
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+export 'package:local_shared/local_shared.dart' hide JSON;
 
 part 'src/shared_collection.dart';
 part 'src/shared_document.dart';
@@ -11,7 +14,7 @@ part 'src/shared_extension.dart';
 part 'src/shared_many_document.dart';
 part 'src/shared_response.dart';
 
-/// Define Map<String, dynamic> as JSON values.
+/// Define Map&lt;String, dynamic&gt; as JSON values.
 typedef JSON = Map<String, dynamic>;
 
 /// A shorter term for [LocalShared].
@@ -46,6 +49,9 @@ class LocalShared {
   /// which will be used as prefix for [SharedPreferences].
   final String id;
 
+  /// The [FlutterSecureStorage] instance used as secured storage base.
+  static FlutterSecureStorage? _storage;
+
   /// The [SharedPreferences] instance used as data storage base.
   static SharedPreferences? _db;
 
@@ -67,8 +73,23 @@ class LocalShared {
   /// }
   /// ```
   Future<void> initialize() async {
+    _storage = FlutterSecureStorage(
+        aOptions: AndroidOptions(
+      sharedPreferencesName: 'flutter.$id.',
+    ));
     if (id.isNotEmpty) SharedPreferences.setPrefix('flutter.$id.');
     _db = await SharedPreferences.getInstance();
+  }
+
+  /// Loaded [FlutterSecureStorage] instance from awaiting [initialize].
+  ///
+  /// This instance will be used in entire lifecycle of the app.
+  static FlutterSecureStorage get storage {
+    if (_storage != null) {
+      return _storage!;
+    } else {
+      throw StateError("LocalShared not initialized. Call initialize() first.");
+    }
   }
 
   /// Loaded [SharedPreferences] instance from awaiting [initialize].
@@ -79,6 +100,33 @@ class LocalShared {
       return _db!;
     } else {
       throw StateError("LocalShared not initialized. Call initialize() first.");
+    }
+  }
+
+  static Future<bool> _create(String id, JSON value) async {
+    try {
+      final String json = jsonEncode(value);
+      await storage.write(key: id, value: json);
+      // obsolete -> await preferences.setString(id, json);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<JSON?> _read(String key) async {
+    final secure = await storage.read(key: key);
+    final basic = preferences.getString(key);
+    return secure?.decode ?? basic?.decode;
+  }
+
+  static Future<bool> _delete(String key) async {
+    try {
+      await storage.delete(key: key);
+      await preferences.remove(key);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 

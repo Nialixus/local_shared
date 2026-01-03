@@ -15,3 +15,6 @@
 
 ## 1.0.5
 * Remove assertion
+
+## 2.0.0
+* Add secure storage

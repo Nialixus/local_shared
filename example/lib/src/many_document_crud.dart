@@ -132,7 +132,7 @@ class _C extends State<ManyDocumentCRUD> {
                         enabled: false,
                         expands: true,
                         maxLines: null,
-                        style: TextStyle(color: Colors.black.withOpacity(0.65)),
+                        style: TextStyle(color: Colors.black.withValues(alpha:  0.65)),
                         decoration: InputDecoration(
                           labelText: ['Response', 'JSON'][i],
                           labelStyle: const TextStyle(color: Colors.black),
