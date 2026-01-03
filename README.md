@@ -7,7 +7,8 @@
 
 ![LocalShared.gif](https://github.com/Nialixus/local_shared/assets/45191605/46bd62d9-7993-4de2-af78-c10650eb5b8d)
 
-A SharedPreferences wrapper for JSON file-based storage, providing an alternative to Localstore. Safely execute CRUD operations on any platform local storage.
+A secure wrapper for JSON file-based storage, providing an alternative to Localstore.
+Safely execute CRUD operations across all platforms with built‑in support for sensitive data handling.
 
 ## Install
 
