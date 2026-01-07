@@ -59,8 +59,7 @@ class SharedDocument {
   }) async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exist or not 👻.
       if (collection == null && !force) {
@@ -79,28 +78,29 @@ class SharedDocument {
         }
 
         // [4] Creating the document 🎉.
-        bool result = await Shared.preferences.setString(this.collection.id,
-            ((collection ?? {})..addEntries([MapEntry(id, document)])).encode);
+        bool result = await Shared._create(
+          this.collection.id,
+          ((collection ?? {})..addEntries([MapEntry(id, document)])),
+        );
 
         // [5] Notify the stream about the change in the collection 📣.
         this.collection._controller.add({
           'id': this.collection.id,
           'documents': [
             for (var item
-                in (Shared.preferences.getString(this.collection.id)?.decode ??
-                        {})
-                    .entries)
-              {'id': item.key, 'data': item.value}
-          ]
+                in ((await Shared._read(this.collection.id)) ?? {}).entries)
+              {'id': item.key, 'data': item.value},
+          ],
         });
 
         // [6] Returning the result of creating this document 🚀.
         return SharedOne(
-            success: result,
-            message: result
-                ? 'The document with ID `$id` has been successfully ${replace ? 'replaced' : 'created'}.'
-                : 'Failed to ${replace ? 'replace' : 'create'} the document with ID `$id`. Please try again.',
-            data: Shared.preferences.getString(this.collection.id)?.decode[id]);
+          success: result,
+          message: result
+              ? 'The document with ID `$id` has been successfully ${replace ? 'replaced' : 'created'}.'
+              : 'Failed to ${replace ? 'replace' : 'create'} the document with ID `$id`. Please try again.',
+          data: (await Shared._read(this.collection.id))?[id],
+        );
       }
     } catch (e) {
       // [7] Returning bad news 🧨.
@@ -119,8 +119,7 @@ class SharedDocument {
   Future<SharedResponse> read() async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -155,14 +154,10 @@ class SharedDocument {
   /// final response = await Shared.col('myCollection').doc('documentId').update({'newKey': 'newValue'});
   /// print(response); // SharedOne(success: true, message: '...', data: JSON)
   /// ```
-  Future<SharedResponse> update(
-    JSON document, {
-    bool force = false,
-  }) async {
+  Future<SharedResponse> update(JSON document, {bool force = false}) async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null && !force) {
@@ -183,24 +178,19 @@ class SharedDocument {
       }
 
       // [4] Updating the document 💼.
-      bool result = await Shared.preferences.setString(
-        this.collection.id,
-        <String, dynamic>{
-          ...collection ?? {},
-          id: (collection?[id] as JSON? ?? {}).merge(document)
-        }.encode,
-      );
+      bool result = await Shared._create(this.collection.id, <String, dynamic>{
+        ...collection ?? {},
+        id: (collection?[id] as JSON? ?? {}).merge(document),
+      });
 
       // [5] Notify the stream about the change in the collection 📣.
       this.collection._controller.add({
         'id': this.collection.id,
         'documents': [
           for (var item
-              in (Shared.preferences.getString(this.collection.id)?.decode ??
-                      {})
-                  .entries)
-            {'id': item.key, 'data': item.value}
-        ]
+              in ((await Shared._read(this.collection.id)) ?? {}).entries)
+            {'id': item.key, 'data': item.value},
+        ],
       });
 
       // [6] Returning the result of updating this document 🚀.
@@ -209,7 +199,7 @@ class SharedDocument {
         message: result
             ? 'The document with ID `$id` has been successfully updated.'
             : 'Failed to update the document with ID `$id`. Please try again.',
-        data: Shared.preferences.getString(this.collection.id)?.decode[id],
+        data: (await Shared._read(this.collection.id))?[id],
       );
     } catch (e) {
       // [7] Returning bad news 🧨.
@@ -228,8 +218,7 @@ class SharedDocument {
   Future<SharedResponse> delete() async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -244,9 +233,9 @@ class SharedDocument {
       }
 
       // [4] Deleting the document 🧹.
-      bool result = await Shared.preferences.setString(
+      bool result = await Shared._create(
         this.collection.id,
-        (collection..remove(id)).encode,
+        (collection..remove(id)),
       );
 
       // [5] Notify the stream about the change in the collection 📣.
@@ -254,11 +243,9 @@ class SharedDocument {
         'id': this.collection.id,
         'documents': [
           for (var item
-              in (Shared.preferences.getString(this.collection.id)?.decode ??
-                      {})
-                  .entries)
-            {'id': item.key, 'data': item.value}
-        ]
+              in (await Shared._read(this.collection.id) ?? {}).entries)
+            {'id': item.key, 'data': item.value},
+        ],
       });
 
       // [6] Returning the result of deleting this document 🚀.

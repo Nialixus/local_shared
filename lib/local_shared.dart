@@ -105,8 +105,7 @@ class LocalShared {
 
   static Future<bool> _create(String id, JSON value) async {
     try {
-      final String json = jsonEncode(value);
-      await storage.write(key: id, value: json);
+      await storage.write(key: id, value: value.encode);
       // obsolete -> await preferences.setString(id, json);
       return true;
     } catch (e) {

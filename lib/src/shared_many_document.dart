@@ -58,8 +58,7 @@ class SharedManyDocument {
   }) async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exist or not 👻.
       if (collection == null && !force) {
@@ -83,23 +82,22 @@ class SharedManyDocument {
         }
 
         // [5] Creating the documents 🎉.
-        bool result = await Shared.preferences.setString(
-            this.collection.id,
-            ({
-              ...collection,
-              for (int i = 0; i < ids.length; i++) ids.elementAt(i): document(i)
-            }).encode);
+        bool result = await Shared._create(
+          this.collection.id,
+          ({
+            ...collection,
+            for (int i = 0; i < ids.length; i++) ids.elementAt(i): document(i),
+          }),
+        );
 
         // [6] Notify the stream about the change in the collection 📣.
         this.collection._controller.add({
           'id': this.collection.id,
           'documents': [
             for (var item
-                in (Shared.preferences.getString(this.collection.id)?.decode ??
-                        {})
-                    .entries)
-              {'id': item.key, 'data': item.value}
-          ]
+                in ((await Shared._read(this.collection.id)) ?? {}).entries)
+              {'id': item.key, 'data': item.value},
+          ],
         });
 
         // [7] Returning the result of creating these document 🚀.
@@ -109,8 +107,7 @@ class SharedManyDocument {
               ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully ${replace ? 'replaced' : 'created'}.'
               : 'Failed to ${replace ? 'replace' : 'create'} ${ids.length} document from specified IDs `${ids.join('`, `')}`. Please try again.',
           data: [
-            for (var id in ids)
-              Shared.preferences.getString(this.collection.id)?.decode[id]
+            for (var id in ids) (await Shared._read(this.collection.id))?[id],
           ].where((e) => e != null).map((e) => e as JSON).toList(),
         );
       }
@@ -132,8 +129,7 @@ class SharedManyDocument {
   Future<SharedResponse> read({bool skip = true}) async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -153,10 +149,9 @@ class SharedManyDocument {
       }
 
       // [4] Loading selected documents 🍽.
-      List<JSON> data = [for (var id in ids) collection[id]]
-          .where((e) => e != null)
-          .map((e) => e as JSON)
-          .toList();
+      List<JSON> data = [
+        for (var id in ids) collection[id],
+      ].where((e) => e != null).map((e) => e as JSON).toList();
 
       // [5] Returning the result of retrieving this document 🚀.
       return SharedMany(
@@ -188,8 +183,7 @@ class SharedManyDocument {
   }) async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null && !force) {
@@ -215,26 +209,22 @@ class SharedManyDocument {
       }
 
       // [5] Updating the document 💼.
-      bool result = await Shared.preferences.setString(
-        this.collection.id,
-        {
-          ...collection,
-          for (int i = 0; i < ids.length; i++)
-            ids.elementAt(i):
-                (collection[ids.elementAt(i)] as JSON? ?? {}).merge(document(i))
-        }.encode,
-      );
+      bool result = await Shared._create(this.collection.id, {
+        ...collection,
+        for (int i = 0; i < ids.length; i++)
+          ids.elementAt(i): (collection[ids.elementAt(i)] as JSON? ?? {}).merge(
+            document(i),
+          ),
+      });
 
       // [6] Notify the stream about the change in the collection 📣.
       this.collection._controller.add({
         'id': this.collection.id,
         'documents': [
           for (var item
-              in (Shared.preferences.getString(this.collection.id)?.decode ??
-                      {})
-                  .entries)
-            {'id': item.key, 'data': item.value}
-        ]
+              in (await Shared._read(this.collection.id) ?? {}).entries)
+            {'id': item.key, 'data': item.value},
+        ],
       });
 
       // [7] Returning the result of updating these document 🚀.
@@ -244,8 +234,7 @@ class SharedManyDocument {
             ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully updated.'
             : 'Failed to update ${ids.length} documents from specified IDs `${ids.join('`, `')}`. Please try again.',
         data: [
-          for (var id in ids)
-            Shared.preferences.getString(this.collection.id)?.decode[id]
+          for (var id in ids) (await Shared._read(this.collection.id))?[id],
         ].where((e) => e != null).map((e) => e as JSON).toList(),
       );
     } catch (e) {
@@ -266,8 +255,7 @@ class SharedManyDocument {
   Future<SharedResponse> delete({bool skip = true}) async {
     try {
       // [1] Get collection 📂.
-      JSON? collection =
-          Shared.preferences.getString(this.collection.id)?.decode;
+      JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
@@ -293,9 +281,9 @@ class SharedManyDocument {
       }
 
       // [6] Store new collection 🚚.
-      bool result = await Shared.preferences.setString(
+      bool result = await Shared._create(
         this.collection.id,
-        collection.encode,
+        collection,
       );
 
       // [7] Notify the stream about the change in the collection 📣.
@@ -303,17 +291,13 @@ class SharedManyDocument {
         'id': this.collection.id,
         'documents': [
           for (var item
-              in (Shared.preferences.getString(this.collection.id)?.decode ??
-                      {})
-                  .entries)
-            {'id': item.key, 'data': item.value}
-        ]
+              in ((await Shared._read(this.collection.id)) ?? {}).entries)
+            {'id': item.key, 'data': item.value},
+        ],
       });
 
       // [8] Compare initial length to current collection length 🧮.
-      length = length -
-          (Shared.preferences.getString(this.collection.id)?.decode.length ??
-              0);
+      length = length - ((await Shared._read(this.collection.id))?.length ?? 0);
 
       // [9] Returning the result of deleting these document 🚀.
       return SharedNone(

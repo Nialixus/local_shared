@@ -1,6 +1,6 @@
 name: local_shared
-description: A SharedPreferences wrapper for JSON file-based storage, providing an alternative to Localstore. Safely execute CRUD operations on any platform local storage.
-version: 2.0.0
+description: A secure wrapper for JSON file-based storage, providing an alternative to Localstore. Safely execute CRUD operations across all platforms with built in support for sensitive data handling.
+version: 2.0.1
 homepage: https://inidia.app
 repository: https://github.com/Nialixus/local_shared.git
 issue_tracker: https://github.com/Nialixus/local_shared/issues
