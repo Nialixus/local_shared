@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/Nialixus/local_shared/main/logo.png" alt="Inidia.app Local Shared Logo" width="150"><br>
   <a href='https://pub.dev/packages/local_shared'><img src='https://img.shields.io/pub/v/local_shared.svg?logo=flutter&color=blue&style=flat-square'/></a>
+  <a href="https://codecov.io/gh/Nialixus/local_shared"><img src="https://codecov.io/gh/Nialixus/local_shared/graph/badge.svg?token=T66X1R33QE"/></a>
 </p>
 
 # Local Shared | [View Demo](https://milestones.inidia.app)
@@ -16,7 +17,7 @@ Add this line to your pubspec.yaml.
 
 ```yaml
 dependencies:
-  local_shared: ^2.0.1
+  local_shared: ^3.0.0
 ```
 
 ## Initialize

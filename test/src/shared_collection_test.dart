@@ -228,43 +228,19 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-  //   test('Shared Collection Deletion', () async {
-  //     // Arrange
-  //     await collection.create();
+    test('Delete Collection', () async {
+      // Arrange: Mock up collection
+      await collection.create();
+      await document.create(data);
 
-  //     // Act
-  //     final response = await collection.delete();
+      // Act: Delete the collection
+      final response = await collection.delete();
 
-  //     // Assert
-  //     expect(response.success, isTrue);
-  //     expect(response.message, contains('successfully deleted'));
-  //   });
-
-  //   test('Shared Collection Shortcut Factory', () async {
-  //     // This tests the .doc() and .docs() methods
-  //     final singleDoc = collection.doc('user_1');
-  //     final multiDocs = collection.docs(['user_1', 'user_2']);
-
-  //     expect(singleDoc, isA<SharedDocument>());
-  //     expect(multiDocs, isA<SharedManyDocument>());
-  //     expect(singleDoc.id, equals('user_1'));
-  //   });
-
-  //   test('Shared Collection Stream Notification', () async {
-  //     // Arrange: Listen to the controller
-  //     bool wasNotified = false;
-  //     controller.stream.listen((data) {
-  //       if (data['id'] == collectionId) {
-  //         wasNotified = true;
-  //       }
-  //     });
-
-  //     // Act
-  //     await collection.create();
-
-  //     // Assert: Wait a moment for stream microtask
-  //     await Future.delayed(Duration.zero);
-  //     expect(wasNotified, isTrue);
-  //   });
+      // Assert: Should return these values
+      expect(response.success, isTrue);
+      expect(response.message, contains('has been successfully deleted'));
+      expect(response.data, isNull);
+      expect(response, isA<SharedNone>());
+    });
   });
 }

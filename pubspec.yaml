@@ -34,7 +34,6 @@ dependencies:
   shared_preferences: ^2.2.2
 
 dev_dependencies:
-  coverage: ^1.15.0
   flutter_lints: ^2.0.0
   flutter_test:
     sdk: flutter

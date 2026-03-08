@@ -16,7 +16,7 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({});
     });
 
-    test('Local Shared Initialization', () async {
+    test('Initialization', () async {
       final db = LocalShared('test_db');
 
       // Now this call will succeed because the binding and mocks are ready
