@@ -29,3 +29,7 @@
 ## 2.0.1
 
 - Replace all 'SharedPreferences' with 'Flutter Secure Storage'
+
+## 3.0.0
+
+- Some parameters have been replaced by different rules, which will definitely introduce breaking changes

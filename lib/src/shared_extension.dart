@@ -28,6 +28,36 @@ extension _ListExtension on List {
   }
 }
 
+extension JSONExtension on JSON {
+   /// Merges the current [JSON] object with another [JSON] object.
+  ///
+  /// The [other] parameter is the [JSON] object to merge into the current object.
+  /// The merge operation combines the key-value pairs from both objects.
+  /// If a key exists in both objects and the values are themselves [JSON] or [Map] objects,
+  /// the values are recursively merged.
+  JSON merge(JSON other) {
+    // 1. Create a copy of the other (the target/base)
+    final result = JSON.from(other);
+
+    // 2. Iterate through the keys of this (the source/priority)
+    for (var key in keys) {
+      final sourceValue = this[key];
+      final targetValue = result[key];
+
+      if (sourceValue is JSON && targetValue is JSON) {
+        // 3. RECURSION: If both are Maps, merge them
+        // We cast to JSON so the extension can find the 'merge' method again
+        result[key] = sourceValue.merge(targetValue);
+      } else {
+        // 4. OVERWRITE: Source wins if it's not a map or the target isn't a map
+        result[key] = sourceValue;
+      }
+    }
+    
+    return result;
+  }
+}
+
 /// Extension methods for enhancing [JSON] functionality.
 extension _JSONExtension on JSON {
   /// Validates the types of entries in a [JSON] object against a provided list of allowed types.
@@ -49,25 +79,8 @@ extension _JSONExtension on JSON {
     }
   }
 
-  /// Merges the current [JSON] object with another [JSON] object.
-  ///
-  /// The [value] parameter is the [JSON] object to merge into the current object.
-  /// The merge operation combines the key-value pairs from both objects.
-  /// If a key exists in both objects and the values are themselves [JSON] or [Map] objects,
-  /// the values are recursively merged.
-  JSON merge(JSON value) {
-    Map<String, dynamic> result = Map.from(this);
+ 
 
-    for (var key in value.keys) {
-      if (result.containsKey(key) && result[key] is Map && value[key] is Map) {
-        result[key] = (result[key] as JSON).merge(value[key]);
-      } else {
-        result[key] = value[key];
-      }
-    }
-
-    return result;
-  }
 
   /// Encodes the [JSON] object into a JSON-formatted string.
   ///
