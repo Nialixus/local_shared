@@ -63,16 +63,18 @@ class SharedCollection {
       // [2] Check if its allowed to create by replacing an old collection or not 💪.
       if (collection != null && !replace) {
         throw 'The collection already exists. '
-            'WARNING: To proceed and replace the collection with ID `$id`, '
-            'set the `replace` parameter to true. '
-            'This action will irreversibly create a new empty collection.';
+            'To proceed and replace the collection with ID `$id`, '
+            'set the `replace` parameter to true.';
       }
 
       // [3] Create the collection 🎉.
-      bool result = await Shared._create(id, {});
+      collection ??= {};
+      bool result = await Shared._create(id, collection);
 
       // [4] Notify the stream about the change in the collection 📣.
-      _controller.add({'id': id, 'documents': []});
+      _controller.add({'id': id, 'documents': [
+        for (var item in collection.entries) item.value
+      ]});
 
       // [5] Returning the result of creating / replacing this collection 🚀.
       return SharedMany(
@@ -81,7 +83,7 @@ class SharedCollection {
             ? 'The collection with ID `$id` has been successfully ${replace ? 'recreated' : 'created'}.'
             : 'Failed to ${replace ? 'recreate' : 'create'} the collection with ID `$id`. Please try again.',
         data: [
-          for (var item in ((await Shared._read(id)) ?? {}).entries) item.value
+          for (var item in collection.entries) item.value
         ],
       );
     } catch (e) {
@@ -129,12 +131,12 @@ class SharedCollection {
   /// Returns a [SharedResponse] of [SharedMany] indicating the success or [SharedNone] for failure of the migration.
   ///
   /// ```dart
-  /// final response = await Shared.col(id).update();
+  /// final response = await Shared.col(id).update(newId);
   /// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
   /// ```
   Future<SharedResponse> update(
     String id, {
-    bool replace = false,
+    bool merge = false,
     bool force = false,
   }) async {
     try {
@@ -160,22 +162,28 @@ class SharedCollection {
       }
 
       // [5] Check if targeted collection exist or not 👼.
-      if (target != null && !replace) {
+      if (target != null && !merge) {
         throw 'Unable to migrate the collection. '
             'Targeted collection with ID `$id` is already exist. '
-            'WARNING: To proceed and replace the collection with ID `$id`, '
-            'set the `replace` parameter to true. '
-            'This action will irreversibly replacing everything inside targeted collection.';
+            'WARNING: To proceed and merge the collection with ID `$id`, '
+            'set the `merge` parameter to true. '
+            'This action will merging the current collection with the targeted one. '
+            'where the same key will prioritize the current collection';
       }
 
+      JSON merged = {
+        for (var item in (target ?? {}).entries) item.key:item.value,
+        for (var item in (collection ?? {}).entries) item.key:item.value,
+      };
+
       // [6] Creating new collection 🎉.
-      bool result = await Shared._create(id, collection ?? {});
+      bool result = await Shared._create(id, merged);
 
       // [7] Notify the stream about the change in the collection 📣.
       _controller.add({
         'id': id,
         'documents': [
-          for (var item in ((await Shared._read(id)) ?? {}).entries)
+          for (var item in merged.entries)
             {'id': item.key, 'data': item.value}
         ]
       });
@@ -188,7 +196,7 @@ class SharedCollection {
         return SharedMany(
           success: delete,
           message: delete
-              ? 'Successfully migrated collection from ID `${this.id}` to ID `$id`.'
+              ? 'Successfully migrated the collection from ID `${this.id}` to ID `$id`.'
               : 'Failed to clear the old collection after migrating to the new ID. '
                   'Please try deleting the collection with ID `${this.id}` manually.',
           data: [

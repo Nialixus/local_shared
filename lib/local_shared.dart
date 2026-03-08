@@ -109,6 +109,7 @@ class LocalShared {
       // obsolete -> await preferences.setString(id, json);
       return true;
     } catch (e) {
+      print("E: $e");
       return false;
     }
   }
