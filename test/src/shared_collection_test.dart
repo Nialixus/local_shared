@@ -11,10 +11,12 @@ void main() {
     late SharedCollection collection;
     late SharedCollection collection2;
     late SharedDocument document;
+    late SharedDocument document2;
     const String collectionId = 'collection_1';
     const String collectionId2 = 'collection_2';
     const String documentId = 'document_1';
-    const JSON data = {'key': 'value'};
+    const JSON data = {'key': 'value1', '1': '1'};
+    const JSON data2 = {'key': 'value2', '2': '2'};
 
     setUp(() async {
       // 2. Initialize LocalShared
@@ -26,6 +28,7 @@ void main() {
       collection = Shared.collection(collectionId);
       collection2 = Shared.collection(collectionId2);
       document = collection.document(documentId);
+      document2 = collection2.document(documentId);
     });
 
     test('Create Collection', () async {
@@ -87,20 +90,22 @@ void main() {
       expect(response.message, contains('has been successfully retrieved'));
     });
 
-    test('Update Collection to Different ID', () async {
+    test('Update Collection', () async {
       // Arrange: Mock up collection
       await collection.create();
       await document.create(data);
 
-      // Act: Read the collection
-      final response = await collection.update(collectionId2);
+      // Act: Update the collection
+      final update = await collection.update(collectionId2);
+      final response = await collection2.read();
 
       // Assert: Should return these values
+      expect(update.success, isTrue);
+      expect(update.message, contains('Successfully migrated the collection'));
       expect(response.success, isTrue);
       expect(response.data, isA<List>());
       expect(response.data, [data]);
       expect(response, isA<SharedMany>());
-      expect(response.message, contains('Successfully migrated the collection'));
 
       final oldResponse = await collection.read();
       expect(oldResponse.success, isFalse);
@@ -109,73 +114,119 @@ void main() {
       expect(oldResponse.message, contains('does not exist'));
     });
 
-      test('Update Collection to Existing Different ID', () async {
+      test('Update Collection to Existing Collection', () async {
       // Arrange: Mock up collection
       await collection.create();
       await collection2.create();
       await document.create(data);
 
-      // Act: Read the collection
-      final response = await collection.update(collectionId2);
-      print(response);
+      // Act: Update the collection
+      final update = await collection.update(collectionId2);
+      final response = await collection2.read();
 
       // Assert: Should return these values
-      expect(response.success, isFalse);
-      expect(response.data, isNull);
-      expect(response, isA<SharedNone>());
-      expect(response.message, contains('is already exist'));
+      expect(update.success, isFalse);
+      expect(update.data, isNull);
+      expect(update, isA<SharedNone>());
+      expect(update.message, contains('is already exist'));
+      expect(response.success, isTrue);
+      expect(response.data, isEmpty);
+      expect(response, isA<SharedMany>());
     });
 
-    test('Update Collection to Existing Different ID Forcibly', () async {
+    test('Update Collection to Existing Collection Forcibly', () async {
       // Arrange: Mock up collection
       await collection.create();
       await collection2.create();
       await document.create(data);
+      await document2.create(data2);
 
-      // Act: Read the collection
-      final response = await collection.update(collectionId2);
-      print(response);
+      // Act: Update the collection
+      final update = await collection.update(collectionId2, merge: true);
+      final response = await collection2.read();
 
       // Assert: Should return these values
-      expect(response.success, isFalse);
-      expect(response.data, isNull);
-      expect(response, isA<SharedNone>());
-      expect(response.message, contains('is already exist'));
+      expect(update.success, isTrue);
+      expect(update.message, contains('Successfully migrated the collection'));
+      expect(response.success, isTrue);
+      expect(response.data, [data.merge(data2)]);
+      expect(response, isA<SharedMany>());
     });
 
-     test('Update Collection to Same ID', () async {
+    test('Update Non Existing Collection to Existing Collection', () async {
+      // Arrange: Mock up collection
+      await collection.delete();
+      await collection2.create();
+      await document2.create(data);
+
+      // Act: Update the collection
+      final update = await collection.update(collectionId2);
+      final response = await collection2.read();
+
+      // Assert: Should return these values
+      expect(update.success, isFalse);
+      expect(update.message, contains('Unable to migrate the collection'));
+      expect(update, isA<SharedNone>());
+      expect(update.data, isNull);
+      expect(response.success, isTrue);
+      expect(response.data, [data]);
+      expect(response, isA<SharedMany>());
+    });
+
+    
+    test('Update Non Existing Collection to Existing Collection Forcibly', () async {
+      // Arrange: Mock up collection
+      await collection.delete();
+      await collection2.create();
+      await document2.create(data);
+
+      // Act: Update the collection
+      final update = await collection.update(collectionId2, merge: true, force: true);
+      final response = await collection2.read();
+
+      // Assert: Should return these values
+      expect(update.success, isTrue);
+      expect(update.message, contains('Successfully migrated the collection'));
+      expect(response.success, isTrue);
+      expect(response.data, [data]);
+      expect(response, isA<SharedMany>());
+    });
+
+     test('Update Collection to the Same Collection', () async {
       // Arrange: Mock up collection
       await collection.create();
       await document.create(data);
 
-      // Act: Read the collection
-      final response = await collection.update(collectionId);
+      // Act: Update the collection
+      final update = await collection.update(collectionId);
+      final response = await collection.read();
 
       // Assert: Should return these values
-      expect(response.success, isFalse);
-      expect(response.data, isNull);
-      expect(response, isA<SharedNone>());
-      expect(response.message, contains('collection ID cannot be the same as the current one'));
+      expect(update.success, isFalse);
+      expect(update.message, contains('collection ID cannot be the same as the current one'));
+      expect(update.data, isNull);
+      expect(update, isA<SharedNone>());
+      expect(response.success, isTrue);
+      expect(response.data, [data]);
+      expect(response, isA<SharedMany>());
     });
 
-   
+    test('Update Collection to the Same Collection Forcibly', () async {
+      // Arrange: Mock up collection
+      await collection.create();
+      await document.create(data);
 
-  //   test('Shared Collection Migration (Update)', () async {
-  //     // Arrange: Create initial collection
-  //     await collection.create();
-  //     const String newCollectionId = 'archived_users';
+      // Act: Update the collection
+      final update = await collection.update(collectionId, force: true);
+      final response = await collection.read();
 
-  //     // Act: Migrate to a new ID
-  //     final response = await collection.update(newCollectionId);
-
-  //     // Assert
-  //     expect(response.success, isTrue);
-  //     expect(response.message, contains('Successfully migrated'));
-      
-  //     // Verify old one is gone and new one exists via a read attempt
-  //     final oldRead = await collection.read(); // Should fail
-  //     expect(oldRead.success, isFalse);
-  //   });
+      // Assert: Should return these values
+      expect(update.success, isTrue);
+      expect(update.message, contains('Successfully migrated the collection'));
+      expect(response.success, isTrue);
+      expect(response.data, [data]);
+      expect(response, isA<SharedMany>());
+    });
 
   //   test('Shared Collection Deletion', () async {
   //     // Arrange

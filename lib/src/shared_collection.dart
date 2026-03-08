@@ -147,7 +147,7 @@ class SharedCollection {
       JSON? target = await Shared._read(id);
 
       // [3] Check if the current collection id is exactly the same with the new one or not 💩.
-      if (this.id == id) {
+      if (this.id == id && !force) {
         throw 'Unable to migrate the collection. '
             'The targeted collection ID cannot be the same as the current one.';
       }
@@ -162,7 +162,7 @@ class SharedCollection {
       }
 
       // [5] Check if targeted collection exist or not 👼.
-      if (target != null && !merge) {
+      if (target != null && !merge && this.id != id) {
         throw 'Unable to migrate the collection. '
             'Targeted collection with ID `$id` is already exist. '
             'WARNING: To proceed and merge the collection with ID `$id`, '
@@ -171,10 +171,8 @@ class SharedCollection {
             'where the same key will prioritize the current collection';
       }
 
-      JSON merged = {
-        for (var item in (target ?? {}).entries) item.key:item.value,
-        for (var item in (collection ?? {}).entries) item.key:item.value,
-      };
+      JSON merged = (collection??{}).merge(target??{});
+
 
       // [6] Creating new collection 🎉.
       bool result = await Shared._create(id, merged);
@@ -190,7 +188,7 @@ class SharedCollection {
 
       if (result) {
         // [8] Delete the old collection 🧹.
-        bool delete = await Shared._delete(this.id);
+        bool delete = this.id == id || await Shared._delete(this.id);
 
         // [9] Returning the result of migrating this collection 🚀.
         return SharedMany(
