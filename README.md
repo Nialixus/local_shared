@@ -44,42 +44,52 @@ typedef DB = LocalShared;
 
 ![LocalShared Collection.gif](https://github.com/Nialixus/local_shared/assets/45191605/6f5be9e9-892b-4381-9691-98c7cc92c92b)
 
-This guide illustrates fundamental CRUD (Create, Read, Update, Delete) operations for collection management. Interacting with it can be achieved through the following methods: `Shared.col(id)` or `Shared.collection(id)`.
+`SharedCollection` organizes documents in a JSON map. Use `Shared.col(id)` or `Shared.collection(id)`,
+then operate with the following methods.
 
 ### Create
 
-To initiate the creation of a new collection, utilize this method:
-
 ```dart
 final result = await Shared.col('myCollection').create();
-print(result); // SharedMany(success: true, message: '...', data: <JSON>[])
+// SharedMany(success: true, message: ..., data: [])
 ```
+
+- `replace: true` can overwrite existing collection.
 
 ### Read
 
-To retrieve information pertaining to a collection, invoke this method:
-
 ```dart
 final response = await Shared.col('myCollection').read();
-print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+// SharedMany(success: true, message: ..., data: [ ... ])
 ```
 
 ### Update
 
-To migrate or change collection id implement this method:
+```dart
+final response = await Shared.col('myCollection').update({
+  'doc1': {'k': 'v'},
+  'doc2': {'k': 'v2'},
+});
+// SharedMany(success: true, message: ..., data: [ ... ])
+```
+
+- `force: true` creates missing collection if it does not exist.
+
+### Migrate
 
 ```dart
-final response = await Shared.col('myCollection').update('myNewCollection');
-print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
+final response = await Shared.col('myCollection').migrate('targetCollection');
+// SharedMany(success: true, message: ..., data: [ ... ])
 ```
+
+- `merge: true` merges existing target collection data.
+- `force: true` allows migration from non-existing source.
 
 ### Delete
 
-To remove a collection, employ this method:
-
 ```dart
-final response = await Shared.col('myNewCollection').delete();
-print(response): // SharedNone(success: true, message: '....')
+final response = await Shared.col('myCollection').delete();
+// SharedNone(success: true, message: ...)
 ```
 
 ## Document | [View Code](https://github.com/Nialixus/local_shared/blob/main/example/lib/src/document_crud.dart)

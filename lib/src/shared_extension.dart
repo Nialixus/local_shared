@@ -1,6 +1,6 @@
 part of '../local_shared.dart';
 
-/// Extension methods for enhancing [String] functionality.
+/// Utility extensions used internally for JSON encoding/decoding and validation.
 extension _StringExtension on String {
   /// Decodes a JSON-formatted string into a [JSON] object.
   JSON get decode => jsonDecode(this);
@@ -29,12 +29,10 @@ extension _ListExtension on List {
 }
 
 extension JSONExtension on JSON {
-  /// Merges the current [JSON] object with another [JSON] object.
+  /// Merge two JSON documents, giving precedence to existing target values.
   ///
-  /// The [other] parameter is the [JSON] object to merge into the current object.
-  /// The merge operation combines the key-value pairs from both objects.
-  /// If a key exists in both objects and the values are themselves [JSON] or [Map] objects,
-  /// the values are recursively merged.
+  /// - Nested maps are merged recursively.
+  /// - Scalar values in target replace values from source.
   JSON merge(JSON other) {
     // 1. Create a copy of the other (the target/base)
     final result = JSON.from(other);

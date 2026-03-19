@@ -10,7 +10,7 @@ part 'src/many_document_crud.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LocalShared('MY_DB').initialize();
+  await const LocalShared('MY_DB').initialize();
 
   // ignore: avoid_print
   if (kDebugMode) LocalShared.stream.listen(print);

@@ -1,33 +1,9 @@
 part of '../local_shared.dart';
 
-/// Representing a group of document within a [SharedCollection] in [LocalShared] storage.
+/// Handles bulk operations for many documents in a collection.
 ///
-/// This class provides methods for creating, reading, updating, and deleting multiple documents
-/// within the context of a specific collection.
-/// ---
-/// ```dart
-/// // Create multiple documents within a collection
-/// final result = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).create((index) => {'key': 'value for $id'});
-/// print(result); // SharedMany(success: true, message: '...', data: <JSON>[])
-/// ```
-/// ---
-/// ```dart
-/// // Read the contents of multiple documents within a collection
-/// final response = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).read();
-/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
-/// ```
-/// ---
-/// ```dart
-/// // Update the contents of multiple documents within a collection
-/// final response = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).update((index) => {'newKey': 'newValue for $id'});
-/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
-/// ```
-/// ---
-/// ```dart
-/// // Delete multiple documents within a collection
-/// final response = await Shared.col('myCollection').docs(['id1', 'id2', 'id3']).delete();
-/// print(response); // SharedNone(success: true, message: '...')
-/// ```
+/// Use `SharedCollection.docs(ids)` to update or delete multiple documents, or
+/// to merge them into a single target document via [migrate].
 class SharedManyDocument {
   /// Creates a new instance of [SharedManyDocument].
   ///

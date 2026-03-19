@@ -1,33 +1,15 @@
 part of '../local_shared.dart';
 
-/// Represents a collection of [SharedDocument] within the [LocalShared] storage.
+/// A collection is a container of documents inside `LocalShared`.
 ///
-/// Collections are used to organize and manage related pieces of data.
-/// This class provides methods for creating, reading, updating, and deleting collections,
-/// as well as shortcuts for interacting with documents and multiple documents.
-/// ---
+/// Use this class to manage whole collections and to access document-level operations:
+/// creation, reading, updating, deleting, and migration.
+///
+/// Recommended usage:
 /// ```dart
-/// // Create a new collection
-/// final result = await Shared.col('myCollection').create();
-/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
-/// ```
-/// ---
-/// ```dart
-/// // Read the contents of a collection
-/// final response = await Shared.col('myCollection').read();
-/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
-/// ```
-/// ---
-/// ```dart
-/// // Update a collection
-/// final response = await Shared.col('myCollection').update();
-/// print(response); // SharedMany(success: true, message: '...', data: <JSON>[])
-/// ```
-/// ---
-/// ```dart
-/// // Delete a collection
-/// final response = await Shared.col('myCollection').delete();
-/// print(response): // SharedNone(success: true, message: '...')
+/// final collection = Shared.col('myCollection');
+/// await collection.create();
+/// await collection.doc('item1').create({'value': 1});
 /// ```
 class SharedCollection {
   /// Creates a new instance of [SharedCollection].

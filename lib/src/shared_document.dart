@@ -1,33 +1,14 @@
 part of '../local_shared.dart';
 
-/// Represents a document within a [SharedCollection] in [LocalShared] storage.
+/// A single document stored inside a collection.
 ///
-/// Documents are individual pieces of data stored within a collection.
-/// This class provides methods for creating, reading, updating, and deleting documents
-/// within the context of a specific collection.
-/// ---
+/// Use this class for document-level CRUD in a collection:
+/// create, read, update, delete, and migrate.
+///
+/// Example:
 /// ```dart
-/// // Create a new document within a collection
-/// final result = await Shared.col('myCollection').doc('documentId').create({'key': 'value'});
-/// print(response); // SharedOne(success: true, message: '...', data: JSON)
-/// ```
-/// ---
-/// ```dart
-/// // Read the contents of a document within a collection
-/// final response = await Shared.col('myCollection').doc('documentId').read();
-/// print(response); // SharedOne(success: true, message: '...', data: JSON)
-/// ```
-/// ---
-/// ```dart
-/// // Update the contents of a document within a collection
-/// final response = await Shared.col('myCollection').doc('documentId').update({'newKey': 'newValue'});
-/// print(response); // SharedOne(success: true, message: '...', data: JSON)
-/// ```
-/// ---
-/// ```dart
-/// // Delete a document within a collection
-/// final response = await Shared.col('myCollection').doc('documentId').delete();
-/// print(response): // SharedNone(success: true, message: '...')
+/// final doc = Shared.col('users').doc('userA');
+/// await doc.create({'name': 'Alice'});
 /// ```
 class SharedDocument {
   /// Creates a new instance of [SharedDocument].

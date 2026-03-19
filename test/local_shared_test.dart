@@ -8,21 +8,74 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Local Shared Test', () {
-    
     setUp(() {
-      // 2. Provide mock values for SharedPreferences before every test
-      // This prevents the "Binding not initialized" and plugin errors
+      // provide mock values for SharedPreferences so initialization works
       SharedPreferences.setMockInitialValues({});
       FlutterSecureStorage.setMockInitialValues({});
     });
 
-    test('Initialization', () async {
-      final db = LocalShared('test_db');
+    test('storage and preferences getters require initialize', () {
+      expect(() => LocalShared.storage, throwsStateError);
+      expect(() => LocalShared.preferences, throwsStateError);
+    });
 
-      // Now this call will succeed because the binding and mocks are ready
+    test('Initialization', () async {
+      const db = LocalShared('test_db');
+      await db.initialize();
+      expect(db, isNotNull);
+      expect(Shared.col('collection'), isA<SharedCollection>());
+    });
+
+    test('col and collection return equivalent objects', () {
+      final col = Shared.col('my_collection');
+      final col2 = Shared.collection('my_collection');
+      expect(col2, isA<SharedCollection>());
+      expect(col.id, equals(col2.id));
+      expect(col.toString(), contains('my_collection'));
+    });
+
+    test('create/read/delete collection operations', () async {
+      const db = LocalShared('test_db_2');
       await db.initialize();
 
-      expect(db, isNotNull);
+      final collection = Shared.col('test_collection');
+      await collection.delete();
+
+      final createResp = await collection.create();
+      expect(createResp.success, isTrue);
+      expect(createResp, isA<SharedMany>());
+      expect(createResp.data, isEmpty);
+
+      final readResp = await collection.read();
+      expect(readResp.success, isTrue);
+      expect(readResp.data, isA<List<JSON>>());
+      expect((readResp.data as List).isEmpty, isTrue);
+
+      final deleteResp = await collection.delete();
+      expect(deleteResp.success, isTrue);
+      expect(deleteResp, isA<SharedNone>());
+    });
+
+    test('stream emits events on collection mutations', () async {
+      final completed = <JSON>[];
+      final sub = LocalShared.stream.listen((event) {
+        completed.add(event);
+      });
+
+      const db = LocalShared('test_db_stream');
+      await db.initialize();
+
+      final coll = Shared.col('stream_collection');
+      await coll.delete();
+      await coll.create();
+
+      // allow asynchronous stream event dispatch
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(completed, isNotEmpty);
+
+      await sub.cancel();
+      await LocalShared.close();
     });
   });
 }

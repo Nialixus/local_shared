@@ -1,16 +1,9 @@
 part of '../local_shared.dart';
 
-/// Represents the response of an operation in [LocalShared].
+/// Base class for structured results returned by LocalShared operations.
 ///
-/// A [SharedResponse] contains information about the success or failure of an operation,
-/// along with an optional data payload. This is an abstract class, and concrete implementations
-/// include [SharedOne], [SharedMany], and [SharedNone].
-///
-/// Usage example:
-/// ```dart
-/// final response = SharedOne(success: true, message: 'Operation successful', data: {'key': 'value'});
-/// print(response); // SharedOne(success: true, message: 'Operation successful', data: {'key': 'value'})
-/// ```
+/// Every result communicates whether the operation succeeded and carries
+/// an informative message plus optional payload data.
 abstract class SharedResponse<T extends Object> {
   /// Creates a new instance of [SharedResponse].
   ///
