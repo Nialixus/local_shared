@@ -55,7 +55,7 @@ class _A extends State<CollectionCRUD> {
                               String id =
                                   'MY_COLLECTION_${Random().nextInt(1000).toString().padLeft(3, '0')}';
                               final response =
-                                  await Shared.col(collection.text).update(id);
+                                  await Shared.col(collection.text).migrate(id);
                               this.response.text = '$response';
                               json.text = '${response.data}';
                               collection.text = id;

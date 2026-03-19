@@ -12,6 +12,7 @@ void main() {
     late SharedDocument document;
     const String collectionId = 'collection_1';
     const String documentId = 'document_1';
+    const String documentId2 = 'document_2';
     const JSON data = {'key': 'value1', '1': '1'};
     const JSON data2 = {'key': 'value2', '2': '2'};
 
@@ -159,6 +160,72 @@ void main() {
       expect(response.data, data2);
       expect(response, isA<SharedOne>());
       expect(response.message, contains('has been successfully updated'));
+    });
+
+    test('Migrate Document', () async {
+      // Arrange: add source document
+      await document.create(data);
+
+      // Act
+      final response = await document.migrate(documentId2);
+
+      // Assert
+      expect(response.success, isTrue);
+      expect(response, isA<SharedOne>());
+      expect(response.data, data);
+      expect(response.message, contains('has been successfully migrated'));
+
+      final readSource = await document.read();
+      expect(readSource.success, isFalse);
+
+      final readDestination = await collection.doc(documentId2).read();
+      expect(readDestination.success, isTrue);
+      expect(readDestination.data, data);
+    });
+
+    test('Migrate Document with Existing Target (No Merge)', () async {
+      // Arrange: add source and target documents
+      await document.create(data);
+      await collection.doc(documentId2).create(data2);
+
+      // Act
+      final response = await document.migrate(documentId2, merge: false);
+
+      // Assert
+      expect(response.success, isFalse);
+      expect(response, isA<SharedNone>());
+      expect(response.message, contains('already exists'));
+    });
+
+    test('Migrate Document with Existing Target and Merge', () async {
+      // Arrange: add source and target documents
+      await document.create(data);
+      await collection.doc(documentId2).create(data2);
+
+      // Act
+      final response = await document.migrate(documentId2, merge: true);
+
+      // Assert
+      expect(response.success, isTrue);
+      expect(response, isA<SharedOne>());
+      expect(response.data, data.merge(data2));
+
+      final readSource = await document.read();
+      expect(readSource.success, isFalse);
+
+      final readDestination = await collection.doc(documentId2).read();
+      expect(readDestination.success, isTrue);
+      expect(readDestination.data, data.merge(data2));
+    });
+
+    test('Migrate Document to Same ID fails', () async {
+      await document.create(data);
+
+      final response = await document.migrate(documentId);
+
+      expect(response.success, isFalse);
+      expect(response, isA<SharedNone>());
+      expect(response.message, contains('cannot be the same'));
     });
 
     test('Delete Document', () async {

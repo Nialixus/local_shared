@@ -209,6 +209,85 @@ class SharedDocument {
     }
   }
 
+  /// Migrates the current document to a new document ID inside the same collection.
+  ///
+  /// If [merge] is true and the target document already exists, data is merged with the source document.
+  /// If [merge] is false, the target document must not exist unless [force] is true.
+  /// If [force] is true, missing source or collection is treated as empty to allow an incremental migration.
+  ///
+  /// ```dart
+  /// final response = await Shared.col('myCollection').doc('doc1').migrate('doc2');
+  /// print(response); // SharedOne(success: true, message: '...', data: JSON)
+  /// ```
+  Future<SharedResponse> migrate(String id,
+      {bool merge = false, bool force = false,}) async {
+    try {
+      // [1] Get collection 📂.
+      JSON? collection = await Shared._read(this.collection.id);
+
+      // [2] Check collection existence 🔍.
+      if (collection == null && !force) {
+          throw 'Unable to migrate the document. '
+              'The specified collection with ID `${this.collection.id}` does not exist.';
+      }
+
+      // [3] Source and destination cannot be identical.
+      if (this.id == id && !force) {
+        throw 'Unable to migrate the document. '
+            'Source and destination document IDs cannot be the same.';
+      }
+
+      // [4] Source document existence.
+      if (collection?[this.id] == null && !force) {
+        throw 'Unable to migrate the document. '
+            'The source document with ID `${this.id}` does not exist.';
+      }
+
+      // [5] Target existence check.
+      if (collection?[id] != null && !merge) {
+        throw 'Unable to migrate the document. '
+            'The target document with ID `$id` already exists. '
+            'To merge with existing target, set `merge` to true.';
+      }
+
+      final JSON sourceDoc = (collection?[this.id] as JSON?) ?? {};
+      final JSON targetDoc = (collection?[id] as JSON?) ?? {};
+      final JSON migratedDoc = collection?[id] != null && merge
+          ? sourceDoc.merge(targetDoc)
+          : sourceDoc;
+
+      // [6] Write migrated collection.
+      final JSON updatedCollection = JSON.from(collection ?? {})
+        ..remove(this.id)
+        ..[id] = migratedDoc;
+
+      bool result = await Shared._create(this.collection.id, updatedCollection);
+
+      // [7] Notify stream 📣.
+      this.collection._controller.add({
+        'id': this.collection.id,
+        'documents': [
+          for (var item in ((await Shared._read(this.collection.id)) ?? {}).entries)
+            {'id': item.key, 'data': item.value},
+        ],
+      });
+
+      // [8] Return.
+      if (result) {
+        return SharedOne(
+          success: true,
+          message:
+              'The document with ID `${this.id}` has been successfully migrated to ID `$id`.',
+          data: migratedDoc,
+        );
+      }
+
+      throw 'Failed to migrate the document from ID `${this.id}` to ID `$id`.';
+    } catch (e) {
+      return SharedNone(message: '$e');
+    }
+  }
+
   /// Deletes the document within the associated collection.
   ///
   /// Returns a [SharedResponse] of [SharedNone] indicating the success or failure of the deletion.

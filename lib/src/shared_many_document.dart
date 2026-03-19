@@ -317,6 +317,102 @@ class SharedManyDocument {
     }
   }
 
+
+  Future<SharedResponse> migrate(
+    String id, {
+    bool merge = false,
+    bool force = false,
+  }) async {
+    try {
+      // [1] Get source collection 📂.
+      JSON source = (await Shared._read(collection.id)) ?? {};
+
+      // [2] Source collection existence.
+      if (source.isEmpty && !force) {
+        throw 'Unable to migrate documents. '
+            'The collection with ID `${collection.id}` does not exist.';
+      }
+
+      // [3] Source and destination document cannot be identical unless forced.
+      if (ids.contains(id) && !force) {
+        throw 'Unable to migrate documents. '
+            'Source and destination document IDs cannot be the same.';
+      }
+
+      // [4] Target document
+      final JSON? existingTarget = source[id] as JSON?;
+      if (existingTarget != null && !merge && !force) {
+        throw 'Unable to migrate documents. '
+            'The target document with ID `$id` already exists. '
+            'To merge with existing target, set `merge` to true.';
+      }
+
+      // [5] Collect content from source documents.
+      JSON migratedData = {};
+      bool hasData = false;
+      for (var docId in ids) {
+        if (docId == id) continue;
+        final doc = source[docId];
+
+        if (doc == null) {
+          if (!force) {
+            throw 'Unable to migrate documents. '
+                'Source document with ID `$docId` does not exist.';
+          }
+          continue;
+        }
+
+        if (doc is! JSON) {
+          throw 'Unable to migrate documents. '
+              'Source document with ID `$docId` has invalid type.';
+        }
+
+        migratedData = hasData ? migratedData.merge(doc) : JSON.from(doc);
+        hasData = true;
+        source.remove(docId);
+      }
+
+      // [6] Construct final target document.
+      JSON finalTarget;
+      if (existingTarget != null && merge) {
+        finalTarget = existingTarget.merge(migratedData);
+      } else {
+        finalTarget = migratedData;
+      }
+
+      // If no data is migrated and target is missing, report (unless force).
+      if (!hasData && existingTarget == null && !force) {
+        throw 'Unable to migrate documents. '
+            'No source documents were available for migration.';
+      }
+
+      source[id] = finalTarget;
+
+      // [7] Persist state 🎉.
+      final bool result = await Shared._create(collection.id, source);
+
+      // [8] Notify stream 📣.
+      collection._controller.add({
+        'id': collection.id,
+        'documents': [
+          for (var item in ((await Shared._read(collection.id)) ?? {}).entries)
+            {'id': item.key, 'data': item.value},
+        ],
+      });
+
+      // [9] Return result 🚀.
+      return SharedOne(
+        success: result,
+        message: result
+            ? 'Selected documents from IDs `${ids.join('`, `')}` have been successfully migrated to document `$id`.'
+            : 'Failed to migrate selected documents to document `$id`. Please try again.',
+        data: (await Shared._read(collection.id))?[id] as JSON?,
+      );
+    } catch (e) {
+      return SharedNone(message: '$e');
+    }
+  }
+
   @override
   String toString() {
     return '$runtimeType(ids: $ids, collection: $collection)';

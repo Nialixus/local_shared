@@ -39,18 +39,17 @@ extension JSONExtension on JSON {
     // 1. Create a copy of the other (the target/base)
     final result = JSON.from(other);
 
-    // 2. Iterate through the keys of this (the source/priority)
+    // 2. Iterate through the keys of this (the source)
     for (var key in keys) {
       final sourceValue = this[key];
       final targetValue = result[key];
 
       if (sourceValue is JSON && targetValue is JSON) {
         // 3. RECURSION: If both are Maps, merge them
-        // We cast to JSON so the extension can find the 'merge' method again
         result[key] = sourceValue.merge(targetValue);
       } else {
-        // 4. OVERWRITE: Source wins if it's not a map or the target isn't a map
-        result[key] = targetValue;
+        // 4. OVERWRITE: target wins if set, otherwise source
+        result[key] = targetValue ?? sourceValue;
       }
     }
 
