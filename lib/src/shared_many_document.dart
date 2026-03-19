@@ -53,7 +53,7 @@ class SharedManyDocument {
   /// ```
   Future<SharedResponse> create(
     JSON Function(int index) document, {
-    bool replace = false,
+    bool merge = false,
     bool force = true,
   }) async {
     try {
@@ -73,11 +73,11 @@ class SharedManyDocument {
 
         // [4] Check if document exists or not 🕊.
         for (String id in ids) {
-          if (collection[id] != null && !replace) {
+          if (collection[id] != null && !merge) {
             throw 'The document already exists. '
-                'WARNING: To proceed and replace the document with ID `$id`, '
-                'set the `replace` parameter to true. '
-                'This action will irreversibly replace the old document.';
+                'WARNING: To proceed and merge the document with ID `$id`, '
+                'set the `merge` parameter to true. '
+                'This action will irreversibly merge the old document.';
           }
         }
 
@@ -86,7 +86,10 @@ class SharedManyDocument {
           this.collection.id,
           ({
             ...collection,
-            for (int i = 0; i < ids.length; i++) ids.elementAt(i): document(i),
+            for (int i = 0; i < ids.length; i++)...(){
+              final id = ids.elementAt(i);
+              return {id:(collection?[id] as JSON? ?? {}).merge( document(i))};
+            }(),  
           }),
         );
 
@@ -104,8 +107,8 @@ class SharedManyDocument {
         return SharedMany(
           success: result,
           message: result
-              ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully ${replace ? 'replaced' : 'created'}.'
-              : 'Failed to ${replace ? 'replace' : 'create'} ${ids.length} document from specified IDs `${ids.join('`, `')}`. Please try again.',
+              ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully ${merge ? 'merged' : 'created'}.'
+              : 'Failed to ${merge ? 'replace' : 'create'} ${ids.length} document from specified IDs `${ids.join('`, `')}`. Please try again.',
           data: [
             for (var id in ids) (await Shared._read(this.collection.id))?[id],
           ].where((e) => e != null).map((e) => e as JSON).toList(),
@@ -310,6 +313,102 @@ class SharedManyDocument {
       );
     } catch (e) {
       // [10] Returning bad news 🧨.
+      return SharedNone(message: '$e');
+    }
+  }
+
+
+  Future<SharedResponse> migrate(
+    String id, {
+    bool merge = false,
+    bool force = false,
+  }) async {
+    try {
+      // [1] Get source collection 📂.
+      JSON source = (await Shared._read(collection.id)) ?? {};
+
+      // [2] Source collection existence.
+      if (source.isEmpty && !force) {
+        throw 'Unable to migrate documents. '
+            'The collection with ID `${collection.id}` does not exist.';
+      }
+
+      // [3] Source and destination document cannot be identical unless forced.
+      if (ids.contains(id) && !force) {
+        throw 'Unable to migrate documents. '
+            'Source and destination document IDs cannot be the same.';
+      }
+
+      // [4] Target document
+      final JSON? existingTarget = source[id] as JSON?;
+      if (existingTarget != null && !merge && !force) {
+        throw 'Unable to migrate documents. '
+            'The target document with ID `$id` already exists. '
+            'To merge with existing target, set `merge` to true.';
+      }
+
+      // [5] Collect content from source documents.
+      JSON migratedData = {};
+      bool hasData = false;
+      for (var docId in ids) {
+        if (docId == id) continue;
+        final doc = source[docId];
+
+        if (doc == null) {
+          if (!force) {
+            throw 'Unable to migrate documents. '
+                'Source document with ID `$docId` does not exist.';
+          }
+          continue;
+        }
+
+        if (doc is! JSON) {
+          throw 'Unable to migrate documents. '
+              'Source document with ID `$docId` has invalid type.';
+        }
+
+        migratedData = hasData ? migratedData.merge(doc) : JSON.from(doc);
+        hasData = true;
+        source.remove(docId);
+      }
+
+      // [6] Construct final target document.
+      JSON finalTarget;
+      if (existingTarget != null && merge) {
+        finalTarget = existingTarget.merge(migratedData);
+      } else {
+        finalTarget = migratedData;
+      }
+
+      // If no data is migrated and target is missing, report (unless force).
+      if (!hasData && existingTarget == null && !force) {
+        throw 'Unable to migrate documents. '
+            'No source documents were available for migration.';
+      }
+
+      source[id] = finalTarget;
+
+      // [7] Persist state 🎉.
+      final bool result = await Shared._create(collection.id, source);
+
+      // [8] Notify stream 📣.
+      collection._controller.add({
+        'id': collection.id,
+        'documents': [
+          for (var item in ((await Shared._read(collection.id)) ?? {}).entries)
+            {'id': item.key, 'data': item.value},
+        ],
+      });
+
+      // [9] Return result 🚀.
+      return SharedOne(
+        success: result,
+        message: result
+            ? 'Selected documents from IDs `${ids.join('`, `')}` have been successfully migrated to document `$id`.'
+            : 'Failed to migrate selected documents to document `$id`. Please try again.',
+        data: (await Shared._read(collection.id))?[id] as JSON?,
+      );
+    } catch (e) {
       return SharedNone(message: '$e');
     }
   }

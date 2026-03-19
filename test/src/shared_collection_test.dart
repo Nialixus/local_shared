@@ -23,7 +23,7 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
       await LocalShared('test_db').initialize();
-      
+
       // // 3. Setup the collection instance
       collection = Shared.collection(collectionId);
       collection2 = Shared.collection(collectionId2);
@@ -58,7 +58,6 @@ void main() {
       expect(response.message, contains('The collection already exists'));
     });
 
-    
     test('Create Existing Collection Forcibly', () async {
       // Arrange: Mock up an existing collection
       await collection.create();
@@ -95,8 +94,46 @@ void main() {
       await collection.create();
       await document.create(data);
 
-      // Act: Update the collection
-      final update = await collection.update(collectionId2);
+      // Act: Update the collection with partial merge
+      final response = await collection.update({
+        'document_1': {
+          'key': 'updated',
+          'newField': 'yes',
+        }
+      });
+
+      // Assert: Should return these values
+      expect(response.success, isTrue);
+      expect(response.data, isA<List>());
+      expect(response.data, contains(equals({'key': 'updated', 'newField': 'yes', '1': '1'})));
+      expect(response, isA<SharedMany>());
+      expect(response.message, contains('has been successfully updated'));
+    });
+
+    test('Update Missing Collection Forcibly', () async {
+      // Arrange: Ensure collection does not exist
+      await collection.delete();
+
+      // Act
+      final response = await collection.update({
+        'someDoc': {'value': 1}
+      }, force: true);
+
+      // Assert
+      expect(response.success, isTrue);
+      expect(response.data, isA<List>());
+      expect(response.data, contains(equals({'value': 1})));
+      expect(response, isA<SharedMany>());
+      expect(response.message, contains('has been successfully updated'));
+    });
+
+    test('Migrate Collection', () async {
+      // Arrange: Mock up collection
+      await collection.create();
+      await document.create(data);
+
+      // Act: Migrate the collection
+      final update = await collection.migrate(collectionId2);
       final response = await collection2.read();
 
       // Assert: Should return these values
@@ -114,14 +151,14 @@ void main() {
       expect(oldResponse.message, contains('does not exist'));
     });
 
-      test('Update Collection to Existing Collection', () async {
+    test('Migrate Collection to Existing Collection', () async {
       // Arrange: Mock up collection
       await collection.create();
       await collection2.create();
       await document.create(data);
 
-      // Act: Update the collection
-      final update = await collection.update(collectionId2);
+      // Act: Migrate the collection
+      final update = await collection.migrate(collectionId2);
       final response = await collection2.read();
 
       // Assert: Should return these values
@@ -134,15 +171,15 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-    test('Update Collection to Existing Collection Forcibly', () async {
+    test('Migrate Collection to Existing Collection Forcibly', () async {
       // Arrange: Mock up collection
       await collection.create();
       await collection2.create();
       await document.create(data);
       await document2.create(data2);
 
-      // Act: Update the collection
-      final update = await collection.update(collectionId2, merge: true);
+      // Act: Migrate the collection
+      final update = await collection.migrate(collectionId2, merge: true);
       final response = await collection2.read();
 
       // Assert: Should return these values
@@ -153,14 +190,14 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-    test('Update Non Existing Collection to Existing Collection', () async {
+    test('Migrate Non Existing Collection to Existing Collection', () async {
       // Arrange: Mock up collection
       await collection.delete();
       await collection2.create();
       await document2.create(data);
 
-      // Act: Update the collection
-      final update = await collection.update(collectionId2);
+      // Act: Migrate the collection
+      final update = await collection.migrate(collectionId2);
       final response = await collection2.read();
 
       // Assert: Should return these values
@@ -173,15 +210,16 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-    
-    test('Update Non Existing Collection to Existing Collection Forcibly', () async {
+    test('Migrate Non Existing Collection to Existing Collection Forcibly',
+        () async {
       // Arrange: Mock up collection
       await collection.delete();
       await collection2.create();
       await document2.create(data);
 
-      // Act: Update the collection
-      final update = await collection.update(collectionId2, merge: true, force: true);
+      // Act: Migrate the collection
+      final update =
+          await collection.migrate(collectionId2, merge: true, force: true);
       final response = await collection2.read();
 
       // Assert: Should return these values
@@ -192,18 +230,19 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-     test('Update Collection to the Same Collection', () async {
+    test('Migrate Collection to the Same Collection', () async {
       // Arrange: Mock up collection
       await collection.create();
       await document.create(data);
 
       // Act: Update the collection
-      final update = await collection.update(collectionId);
+      final update = await collection.migrate(collectionId);
       final response = await collection.read();
 
       // Assert: Should return these values
       expect(update.success, isFalse);
-      expect(update.message, contains('collection ID cannot be the same as the current one'));
+      expect(update.message,
+          contains('collection ID cannot be the same as the current one'));
       expect(update.data, isNull);
       expect(update, isA<SharedNone>());
       expect(response.success, isTrue);
@@ -211,13 +250,13 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-    test('Update Collection to the Same Collection Forcibly', () async {
+    test('Migrate Collection to the Same Collection Forcibly', () async {
       // Arrange: Mock up collection
       await collection.create();
       await document.create(data);
 
       // Act: Update the collection
-      final update = await collection.update(collectionId, force: true);
+      final update = await collection.migrate(collectionId, force: true);
       final response = await collection.read();
 
       // Assert: Should return these values
@@ -226,6 +265,45 @@ void main() {
       expect(response.success, isTrue);
       expect(response.data, [data]);
       expect(response, isA<SharedMany>());
+    });
+
+    test('Migrate Documents from Collection Using SharedManyDocument', () async {
+      // Arrange: Setup source collection and documents
+      await collection.create();
+      await document.create(data);
+      await collection.document('document_2').create({'x': 'y'});
+
+      // Act: Migrate specific documents from source into a single target document
+      final response = await collection.docs([documentId, 'document_2']).migrate('merged_document');
+      final targetRead = await collection.doc('merged_document').read();
+      final sourceRead = await collection.read();
+
+      // Assert: Should return these values
+      expect(response.success, isTrue);
+      expect(response, isA<SharedOne>());
+      expect(targetRead.success, isTrue);
+      expect(targetRead.one, containsPair('key', 'value1'));
+      expect(targetRead.one, containsPair('x', 'y'));
+      expect(sourceRead.success, isTrue);
+      expect(sourceRead.data, isA<List<JSON>>());
+      expect(sourceRead.data, contains(equals({'x': 'y', 'key': 'value1', '1': '1'}))); // merged doc should be new target not in source list
+    });
+
+    test('Migrate Documents to Target With Merge', () async {
+      // Arrange: Setup source collection and existing target document
+      await collection.create();
+      await document.create(data);
+      await collection.doc('merged_document').create({'1': '2'});
+
+      // Act: Migrate with merge true into the existing target document
+      final response = await collection.docs([documentId]).migrate('merged_document', merge: true);
+      final targetRead = await collection.doc('merged_document').read();
+
+      // Assert: Should merge existing target document
+      expect(response.success, isTrue);
+      expect(targetRead.success, isTrue);
+      expect(targetRead.one, containsPair('key', 'value1'));
+      expect(targetRead.one, containsPair('1', '1')); // existing value preserved by target precedence
     });
 
     test('Delete Collection', () async {
