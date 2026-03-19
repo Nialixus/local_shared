@@ -22,7 +22,7 @@ void main() {
       // 2. Initialize LocalShared
       FlutterSecureStorage.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
-      await LocalShared('test_db').initialize();
+      await const LocalShared('test_db').initialize();
 
       // // 3. Setup the collection instance
       collection = Shared.collection(collectionId);
@@ -71,6 +71,42 @@ void main() {
       expect(response.data, [data]);
       expect(response, isA<SharedMany>());
       expect(response.message, contains('has been successfully recreated'));
+    });
+
+    test('Read missing collection returns SharedNone', () async {
+      await collection.delete();
+      final response = await collection.read();
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains('does not exist'));
+    });
+
+    test('IDs returns all saved document keys', () async {
+      await collection.create();
+      await document.create(data);
+      await collection.document('document_2').create(data2);
+
+      final ids = await collection.ids();
+      expect(ids, containsAll([documentId, 'document_2']));
+    });
+
+    test('Update missing collection without force fails', () async {
+      await collection.delete();
+      final response = await collection.update({
+        'document_1': {'key': 'updated'},
+      });
+
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains('does not exist'));
+    });
+
+    test('Delete missing collection returns SharedNone', () async {
+      await collection.delete();
+      final response = await collection.delete();
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains('does not exist'));
     });
 
     test('Read Collection', () async {

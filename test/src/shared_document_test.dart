@@ -20,7 +20,7 @@ void main() {
       // 2. Initialize LocalShared
       FlutterSecureStorage.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
-      await LocalShared('test_db').initialize();
+      await const LocalShared('test_db').initialize();
 
       // 3. Setup the collection and document instance
       collection = Shared.collection(collectionId);
@@ -73,7 +73,7 @@ void main() {
 
       // Act: Create a new document with the same ID and merge: true
       final response = await document.create(data2, merge: true);
-      
+
       // Assert: Should return these values
       expect(response.success, isTrue);
       expect(response.data, data.merge(data2));
@@ -226,6 +226,29 @@ void main() {
       expect(response.success, isFalse);
       expect(response, isA<SharedNone>());
       expect(response.message, contains('cannot be the same'));
+    });
+
+    test('Migrate Missing Source With Force Creates Target', () async {
+      await collection.create(replace: true);
+
+      final response = await document.migrate(documentId2, force: true);
+      expect(response.success, isTrue);
+      expect(response, isA<SharedOne>());
+      expect(response.data, isNotNull);
+
+      final targetRead = await collection.doc(documentId2).read();
+      expect(targetRead.success, isTrue);
+      expect(targetRead.data, isEmpty);
+    });
+
+    test('Migrate to Same ID with Force does nothing but succeeds', () async {
+      await document.create(data);
+
+      final response = await document.migrate(documentId, force: true);
+
+      expect(response.success, isTrue);
+      expect(response, isA<SharedOne>());
+      expect(response.data, data);
     });
 
     test('Delete Document', () async {

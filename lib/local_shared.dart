@@ -1,4 +1,7 @@
-/// A SharedPreferences-based local storage, designed as an alternative to the localstore package
+/// Lightweight local storage that uses Flutter Secure Storage and SharedPreferences.
+///
+/// Provides a simplified API for managing collections and documents in a key/value store.
+/// It is designed as an alternative to `localstore` with explicit, typed responses.
 library local_shared;
 
 import 'dart:async';
@@ -21,31 +24,21 @@ typedef JSON = Map<String, dynamic>;
 /// A shorter term for [LocalShared].
 typedef Shared = LocalShared;
 
-/// Parent of [SharedCollection], [SharedDocument] and [SharedManyDocument]. Need to be initiated before used!
+/// LocalShared is the core datastore object.
+///
+/// Call [initialize] once at app startup, then use [Shared.col] or [Shared.collection]
+/// to access collection and document CRUD operations.
 ///
 /// ```dart
-/// void main() {
-///   WidgetsFlutterBinding.ensureInitialized();
-///   await LocalShared('DATABASE').initialize();
-/// }
-/// ```
-///
-/// and later in app, you can access it anywhere by calling this
-///
-/// ```dart
-/// final response = await Shared.col(id).doc(id).read();
-/// print(response); // SharedOne(success: true, message: '..., data: JSON) */
+/// WidgetsFlutterBinding.ensureInitialized();
+/// await LocalShared('appId').initialize();
+/// final result = await Shared.col('users').doc('user1').read();
 /// ```
 class LocalShared {
-  /// Default constructor of [LocalShared] containing [id] to be used as prefix in [SharedPreferences].
+  /// Constructs a LocalShared instance.
   ///
-  /// Let [id] empty if you want to use default prefix of [SharedPreferences].
-  ///
-  /// ```dart
-  /// LocalShared('app.inidia.example');
-  /// ```
-  LocalShared(this.id);
-
+  /// The [id] is used as a namespace prefix for all saved keys.
+  const LocalShared(this.id);
   /// The unique identifier for this [LocalShared] database instance
   /// which will be used as prefix for [SharedPreferences].
   final String id;
@@ -63,15 +56,13 @@ class LocalShared {
   static final StreamController<JSON> _controller =
       StreamController<JSON>.broadcast();
 
-  /// Initializes the [LocalShared] instance.
+  /// Initializes internal storage instances.
   ///
-  /// Call this once inside main function after ensuring flutter initialized.
+  /// Must be called once before retrying any read/write operations.
   ///
   /// ```dart
-  /// Future<void> main() async {
-  ///   WidgetsFlutterBinding.ensureInitialized();
-  ///   await LocalShared('app.inidia.example').initialize();
-  /// }
+  /// WidgetsFlutterBinding.ensureInitialized();
+  /// await LocalShared('app.example').initialize();
   /// ```
   Future<void> initialize() async {
     _storage = FlutterSecureStorage(
@@ -82,9 +73,9 @@ class LocalShared {
     _db = await SharedPreferences.getInstance();
   }
 
-  /// Loaded [FlutterSecureStorage] instance from awaiting [initialize].
+  /// Returns the initialized secure storage instance.
   ///
-  /// This instance will be used in entire lifecycle of the app.
+  /// Throws [StateError] if [initialize] has not been called.
   static FlutterSecureStorage get storage {
     if (_storage != null) {
       return _storage!;

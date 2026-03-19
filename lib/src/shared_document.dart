@@ -1,33 +1,14 @@
 part of '../local_shared.dart';
 
-/// Represents a document within a [SharedCollection] in [LocalShared] storage.
+/// A single document stored inside a collection.
 ///
-/// Documents are individual pieces of data stored within a collection.
-/// This class provides methods for creating, reading, updating, and deleting documents
-/// within the context of a specific collection.
-/// ---
+/// Use this class for document-level CRUD in a collection:
+/// create, read, update, delete, and migrate.
+///
+/// Example:
 /// ```dart
-/// // Create a new document within a collection
-/// final result = await Shared.col('myCollection').doc('documentId').create({'key': 'value'});
-/// print(response); // SharedOne(success: true, message: '...', data: JSON)
-/// ```
-/// ---
-/// ```dart
-/// // Read the contents of a document within a collection
-/// final response = await Shared.col('myCollection').doc('documentId').read();
-/// print(response); // SharedOne(success: true, message: '...', data: JSON)
-/// ```
-/// ---
-/// ```dart
-/// // Update the contents of a document within a collection
-/// final response = await Shared.col('myCollection').doc('documentId').update({'newKey': 'newValue'});
-/// print(response); // SharedOne(success: true, message: '...', data: JSON)
-/// ```
-/// ---
-/// ```dart
-/// // Delete a document within a collection
-/// final response = await Shared.col('myCollection').doc('documentId').delete();
-/// print(response): // SharedNone(success: true, message: '...')
+/// final doc = Shared.col('users').doc('userA');
+/// await doc.create({'name': 'Alice'});
 /// ```
 class SharedDocument {
   /// Creates a new instance of [SharedDocument].
@@ -219,16 +200,19 @@ class SharedDocument {
   /// final response = await Shared.col('myCollection').doc('doc1').migrate('doc2');
   /// print(response); // SharedOne(success: true, message: '...', data: JSON)
   /// ```
-  Future<SharedResponse> migrate(String id,
-      {bool merge = false, bool force = false,}) async {
+  Future<SharedResponse> migrate(
+    String id, {
+    bool merge = false,
+    bool force = false,
+  }) async {
     try {
       // [1] Get collection 📂.
       JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check collection existence 🔍.
       if (collection == null && !force) {
-          throw 'Unable to migrate the document. '
-              'The specified collection with ID `${this.collection.id}` does not exist.';
+        throw 'Unable to migrate the document. '
+            'The specified collection with ID `${this.collection.id}` does not exist.';
       }
 
       // [3] Source and destination cannot be identical.
@@ -244,7 +228,7 @@ class SharedDocument {
       }
 
       // [5] Target existence check.
-      if (collection?[id] != null && !merge) {
+      if (collection?[id] != null && !merge && this.id != id) {
         throw 'Unable to migrate the document. '
             'The target document with ID `$id` already exists. '
             'To merge with existing target, set `merge` to true.';
@@ -267,7 +251,8 @@ class SharedDocument {
       this.collection._controller.add({
         'id': this.collection.id,
         'documents': [
-          for (var item in ((await Shared._read(this.collection.id)) ?? {}).entries)
+          for (var item
+              in ((await Shared._read(this.collection.id)) ?? {}).entries)
             {'id': item.key, 'data': item.value},
         ],
       });

@@ -15,7 +15,7 @@ void main() {
     setUp(() async {
       FlutterSecureStorage.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
-      await LocalShared('test_db').initialize();
+      await const LocalShared('test_db').initialize();
       collection = Shared.collection(collectionId);
       await collection.delete();
     });
@@ -41,6 +41,15 @@ void main() {
       expect(response.success, isFalse);
     });
 
+    test('Create new docs without collection and force false fails', () async {
+      await collection.delete();
+      final response = await collection.docs(['docA', 'docB']).create((index) => index == 0 ? docA : docB, force: false);
+
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains('does not exist'));
+    });
+
     test('Create existing docs with merge should succeed', () async {
       await collection.docs(['docA']).create((_) => docA);
       final response = await collection.docs(['docA']).create((_) => {'c': 3}, merge: true);
@@ -51,6 +60,26 @@ void main() {
       expect(stored, isNotNull);
       expect(stored!.first, containsPair('c', 3));
       expect(stored.first, containsPair('a', 1));
+    });
+
+    test('Update missing documents without force fails', () async {
+      await collection.docs(['docA']).create((_) => docA);
+
+      final response = await collection.docs(['docA', 'docB']).update((index) => index == 0 ? {'a': 10} : {'b': 20}, force: false);
+
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains('does not exist'));
+    });
+
+    test('Delete missing documents without skip fails', () async {
+      await collection.docs(['docA']).create((_) => docA);
+
+      final response = await collection.docs(['docA', 'docB']).delete(skip: false);
+
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains('does not exist'));
     });
 
     test('Read missing doc with skip false throws', () async {

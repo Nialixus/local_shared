@@ -33,3 +33,4 @@
 ## 3.0.0
 
 - Some parameters have been replaced by different rules, which will definitely introduce breaking changes
+- Full coverage test
