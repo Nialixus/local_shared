@@ -23,7 +23,7 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
       await LocalShared('test_db').initialize();
-      
+
       // // 3. Setup the collection instance
       collection = Shared.collection(collectionId);
       collection2 = Shared.collection(collectionId2);
@@ -58,7 +58,6 @@ void main() {
       expect(response.message, contains('The collection already exists'));
     });
 
-    
     test('Create Existing Collection Forcibly', () async {
       // Arrange: Mock up an existing collection
       await collection.create();
@@ -114,7 +113,7 @@ void main() {
       expect(oldResponse.message, contains('does not exist'));
     });
 
-      test('Update Collection to Existing Collection', () async {
+    test('Update Collection to Existing Collection', () async {
       // Arrange: Mock up collection
       await collection.create();
       await collection2.create();
@@ -173,15 +172,16 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-    
-    test('Update Non Existing Collection to Existing Collection Forcibly', () async {
+    test('Update Non Existing Collection to Existing Collection Forcibly',
+        () async {
       // Arrange: Mock up collection
       await collection.delete();
       await collection2.create();
       await document2.create(data);
 
       // Act: Update the collection
-      final update = await collection.update(collectionId2, merge: true, force: true);
+      final update =
+          await collection.update(collectionId2, merge: true, force: true);
       final response = await collection2.read();
 
       // Assert: Should return these values
@@ -192,7 +192,7 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-     test('Update Collection to the Same Collection', () async {
+    test('Update Collection to the Same Collection', () async {
       // Arrange: Mock up collection
       await collection.create();
       await document.create(data);
@@ -203,7 +203,8 @@ void main() {
 
       // Assert: Should return these values
       expect(update.success, isFalse);
-      expect(update.message, contains('collection ID cannot be the same as the current one'));
+      expect(update.message,
+          contains('collection ID cannot be the same as the current one'));
       expect(update.data, isNull);
       expect(update, isA<SharedNone>());
       expect(response.success, isTrue);

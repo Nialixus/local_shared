@@ -29,7 +29,7 @@ extension _ListExtension on List {
 }
 
 extension JSONExtension on JSON {
-   /// Merges the current [JSON] object with another [JSON] object.
+  /// Merges the current [JSON] object with another [JSON] object.
   ///
   /// The [other] parameter is the [JSON] object to merge into the current object.
   /// The merge operation combines the key-value pairs from both objects.
@@ -50,10 +50,10 @@ extension JSONExtension on JSON {
         result[key] = sourceValue.merge(targetValue);
       } else {
         // 4. OVERWRITE: Source wins if it's not a map or the target isn't a map
-        result[key] = sourceValue;
+        result[key] = targetValue;
       }
     }
-    
+
     return result;
   }
 }
@@ -78,9 +78,6 @@ extension _JSONExtension on JSON {
       }
     }
   }
-
- 
-
 
   /// Encodes the [JSON] object into a JSON-formatted string.
   ///

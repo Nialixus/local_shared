@@ -44,7 +44,7 @@ class SharedDocument {
 
   /// Creates a new document within the associated collection.
   ///
-  /// Optionally, it can replace an existing document if [replace] is set to true.
+  /// Optionally, it can merge an existing document if [merge] is set to true.
   /// Optionally, it can force creating new collection if the current collection does not exist, by setting [force] to true.
   /// Returns a [SharedResponse] of [SharedOne] for indicating the success or [SharedNone] for failure of the operation.
   ///
@@ -54,7 +54,7 @@ class SharedDocument {
   /// ```
   Future<SharedResponse> create(
     JSON document, {
-    bool replace = false,
+    bool merge = false,
     bool force = true,
   }) async {
     try {
@@ -70,17 +70,19 @@ class SharedDocument {
             'collection and continued by creating a document within it.';
       } else {
         // [3] Check if document exists or not 🕊.
-        if (collection?[id] != null && !replace) {
+        if (collection?[id] != null && !merge) {
           throw 'The document already exists. '
-              'WARNING: To proceed and replace the document with ID `$id`, '
-              'set the `replace` parameter to true. '
-              'This action will irreversibly replace the old document.';
+              'WARNING: To proceed and merge the document with ID `$id`, '
+              'set the `merge` parameter to true. '
+              'This action will irreversibly merge the old document.';
         }
+
+        JSON merged = (collection?[id] as JSON? ?? {}).merge(document);
 
         // [4] Creating the document 🎉.
         bool result = await Shared._create(
           this.collection.id,
-          ((collection ?? {})..addEntries([MapEntry(id, document)])),
+          ((collection ?? {})..addEntries([MapEntry(id, merged)])),
         );
 
         // [5] Notify the stream about the change in the collection 📣.
@@ -97,8 +99,8 @@ class SharedDocument {
         return SharedOne(
           success: result,
           message: result
-              ? 'The document with ID `$id` has been successfully ${replace ? 'replaced' : 'created'}.'
-              : 'Failed to ${replace ? 'replace' : 'create'} the document with ID `$id`. Please try again.',
+              ? 'The document with ID `$id` has been successfully ${merge ? 'merged' : 'created'}.'
+              : 'Failed to ${merge ? 'merge' : 'create'} the document with ID `$id`. Please try again.',
           data: (await Shared._read(this.collection.id))?[id],
         );
       }

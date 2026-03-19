@@ -53,7 +53,7 @@ class SharedManyDocument {
   /// ```
   Future<SharedResponse> create(
     JSON Function(int index) document, {
-    bool replace = false,
+    bool merge = false,
     bool force = true,
   }) async {
     try {
@@ -73,11 +73,11 @@ class SharedManyDocument {
 
         // [4] Check if document exists or not 🕊.
         for (String id in ids) {
-          if (collection[id] != null && !replace) {
+          if (collection[id] != null && !merge) {
             throw 'The document already exists. '
-                'WARNING: To proceed and replace the document with ID `$id`, '
-                'set the `replace` parameter to true. '
-                'This action will irreversibly replace the old document.';
+                'WARNING: To proceed and merge the document with ID `$id`, '
+                'set the `merge` parameter to true. '
+                'This action will irreversibly merge the old document.';
           }
         }
 
@@ -86,7 +86,10 @@ class SharedManyDocument {
           this.collection.id,
           ({
             ...collection,
-            for (int i = 0; i < ids.length; i++) ids.elementAt(i): document(i),
+            for (int i = 0; i < ids.length; i++)...(){
+              final id = ids.elementAt(i);
+              return {id:(collection?[id] as JSON? ?? {}).merge( document(i))};
+            }(),  
           }),
         );
 
@@ -104,8 +107,8 @@ class SharedManyDocument {
         return SharedMany(
           success: result,
           message: result
-              ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully ${replace ? 'replaced' : 'created'}.'
-              : 'Failed to ${replace ? 'replace' : 'create'} ${ids.length} document from specified IDs `${ids.join('`, `')}`. Please try again.',
+              ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully ${merge ? 'merged' : 'created'}.'
+              : 'Failed to ${merge ? 'replace' : 'create'} ${ids.length} document from specified IDs `${ids.join('`, `')}`. Please try again.',
           data: [
             for (var id in ids) (await Shared._read(this.collection.id))?[id],
           ].where((e) => e != null).map((e) => e as JSON).toList(),

@@ -43,6 +43,23 @@ class SharedCollection {
   /// The stream controller used to listen for changes in the collection.
   late final StreamController<JSON> _controller;
 
+  Future<List<String>> ids() async {
+    final result = <String>[];
+    try {
+      JSON? collection = await Shared._read(id);
+      if (collection != null) {
+        for (var item in collection.entries) {
+          result.add(item.key);
+        }
+      }
+
+      return result;
+    } catch (e) {
+      debugPrint("Failed to get ids, reason: $e");
+      return result;
+    }
+  }
+
   /// Creates a new collection.
   ///
   /// Optionally, it can replace an existing collection if [replace] is set to true.
@@ -72,9 +89,10 @@ class SharedCollection {
       bool result = await Shared._create(id, collection);
 
       // [4] Notify the stream about the change in the collection 📣.
-      _controller.add({'id': id, 'documents': [
-        for (var item in collection.entries) item.value
-      ]});
+      _controller.add({
+        'id': id,
+        'documents': [for (var item in collection.entries) item.value]
+      });
 
       // [5] Returning the result of creating / replacing this collection 🚀.
       return SharedMany(
@@ -82,9 +100,7 @@ class SharedCollection {
         message: result
             ? 'The collection with ID `$id` has been successfully ${replace ? 'recreated' : 'created'}.'
             : 'Failed to ${replace ? 'recreate' : 'create'} the collection with ID `$id`. Please try again.',
-        data: [
-          for (var item in collection.entries) item.value
-        ],
+        data: [for (var item in collection.entries) item.value],
       );
     } catch (e) {
       // [6] Returning bad news 🧨.
@@ -126,7 +142,7 @@ class SharedCollection {
 
   /// Migrates the current collection to a new collection with the specified [id].
   ///
-  /// Optionally, it can replace an existing target collection if [replace] is set to true.
+  /// Optionally, it can replace an existing target collection if [merge] is set to true.
   /// Optionally, it can force migration even if the current collection does not exist, by setting [force] to true.
   /// Returns a [SharedResponse] of [SharedMany] indicating the success or [SharedNone] for failure of the migration.
   ///
@@ -171,8 +187,7 @@ class SharedCollection {
             'where the same key will prioritize the current collection';
       }
 
-      JSON merged = (collection??{}).merge(target??{});
-
+      JSON merged = (collection ?? {}).merge(target ?? {});
 
       // [6] Creating new collection 🎉.
       bool result = await Shared._create(id, merged);
@@ -181,8 +196,7 @@ class SharedCollection {
       _controller.add({
         'id': id,
         'documents': [
-          for (var item in merged.entries)
-            {'id': item.key, 'data': item.value}
+          for (var item in merged.entries) {'id': item.key, 'data': item.value}
         ]
       });
 
