@@ -73,7 +73,7 @@ void main() {
 
       // Act: Create a new document with the same ID and merge: true
       final response = await document.create(data2, merge: true);
-      
+
       // Assert: Should return these values
       expect(response.success, isTrue);
       expect(response.data, data.merge(data2));

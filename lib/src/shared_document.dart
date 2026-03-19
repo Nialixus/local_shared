@@ -200,16 +200,19 @@ class SharedDocument {
   /// final response = await Shared.col('myCollection').doc('doc1').migrate('doc2');
   /// print(response); // SharedOne(success: true, message: '...', data: JSON)
   /// ```
-  Future<SharedResponse> migrate(String id,
-      {bool merge = false, bool force = false,}) async {
+  Future<SharedResponse> migrate(
+    String id, {
+    bool merge = false,
+    bool force = false,
+  }) async {
     try {
       // [1] Get collection 📂.
       JSON? collection = await Shared._read(this.collection.id);
 
       // [2] Check collection existence 🔍.
       if (collection == null && !force) {
-          throw 'Unable to migrate the document. '
-              'The specified collection with ID `${this.collection.id}` does not exist.';
+        throw 'Unable to migrate the document. '
+            'The specified collection with ID `${this.collection.id}` does not exist.';
       }
 
       // [3] Source and destination cannot be identical.
@@ -225,7 +228,7 @@ class SharedDocument {
       }
 
       // [5] Target existence check.
-      if (collection?[id] != null && !merge) {
+      if (collection?[id] != null && !merge && this.id != id) {
         throw 'Unable to migrate the document. '
             'The target document with ID `$id` already exists. '
             'To merge with existing target, set `merge` to true.';
@@ -248,7 +251,8 @@ class SharedDocument {
       this.collection._controller.add({
         'id': this.collection.id,
         'documents': [
-          for (var item in ((await Shared._read(this.collection.id)) ?? {}).entries)
+          for (var item
+              in ((await Shared._read(this.collection.id)) ?? {}).entries)
             {'id': item.key, 'data': item.value},
         ],
       });
