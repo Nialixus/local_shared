@@ -339,8 +339,8 @@ class SharedManyDocument {
         }
 
         if (doc is! JSON) {
-          throw 'Unable to migrate documents. '
-              'Source document with ID `$docId` has invalid type.';
+          throw '''Unable to migrate documents. 
+          Source document with ID `$docId` has invalid type.''';
         }
 
         migratedData = hasData ? migratedData.merge(doc) : JSON.from(doc);
