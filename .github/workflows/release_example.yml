@@ -94,7 +94,7 @@ jobs:
       - name: Install Linux Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev liblzma-dev libstdc++6 pkg-config
+          sudo apt-get install -y libgtk-3-dev liblzma-dev libstdc++6 pkg-config libsecret-1-dev
       - name: Build Linux
         run: |
           cd example
