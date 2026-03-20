@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# This will automatically cancel old runs if you push again
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   versioning:
     runs-on: ubuntu-latest
