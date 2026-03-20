@@ -106,7 +106,7 @@ jobs:
       - name: Package Linux
         run: |
           cd example/build/linux/x64/release/bundle
-          zip -r ../../../../../example-linux.zip .
+          zip -r ../../../../../../example-linux.zip .
       - name: Release Linux
         uses: softprops/action-gh-release@v1
         with:
