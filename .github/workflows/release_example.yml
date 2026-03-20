@@ -9,7 +9,6 @@ permissions:
   contents: write
 
 jobs:
-  # This job just calculates the version once to keep both builds in sync
   versioning:
     runs-on: ubuntu-latest
     outputs:
@@ -22,9 +21,9 @@ jobs:
           BASE_VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
           echo "VERSION=${BASE_VERSION}-${{ github.run_number }}" >> $GITHUB_OUTPUT
 
-  build-android-web:
+  build-web:
     needs: versioning
-    name: Build Android and Web
+    name: Build Web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,32 +31,87 @@ jobs:
         with:
           channel: 'stable'
           cache: true
-      - name: Build
+      - name: Build Web
         run: |
           cd example
-          flutter pub get
-          if [ ! -d "android" ]; then flutter create --platforms android .; fi
+          flutter pub upgrade
           if [ ! -d "web" ]; then flutter create --platforms web .; fi
-          flutter build apk --release
+          flutter pub get
           flutter build web
       - name: Package Web
         run: |
           cd example/build/web
           zip -r ../../../example-web.zip .
-      - name: Create release
+      - name: Release Web
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.versioning.outputs.version }}
           name: Release ${{ needs.versioning.outputs.version }}
-          generate_release_notes: true
-          files: |
-            example/build/app/outputs/flutter-apk/app-release.apk
-            example-web.zip
+          files: example-web.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    needs: versioning
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Build Android
+        run: |
+          cd example
+          flutter pub upgrade
+          if [ ! -d "android" ]; then flutter create --platforms android .; fi
+          flutter pub get
+          flutter build apk --release
+      - name: Release Android
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.versioning.outputs.version }}
+          files: example/build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    needs: versioning
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev liblzma-dev libstdc++6 pkg-config
+      - name: Build Linux
+        run: |
+          cd example
+          flutter config --enable-linux-desktop
+          if [ ! -d "linux" ]; then flutter create --platforms linux .; fi
+          flutter pub upgrade
+          flutter pub get
+          flutter build linux --release
+      - name: Package Linux
+        run: |
+          cd example/build/linux/x64/release/bundle
+          zip -r ../../../../../example-linux.zip .
+      - name: Release Linux
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.versioning.outputs.version }}
+          files: example-linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
-    needs: [versioning, build-android-web] # Wait for collection existence and versioning
+    needs: versioning
     name: Build Windows
     runs-on: windows-latest
     steps:
@@ -72,13 +126,14 @@ jobs:
           cd example
           flutter config --enable-windows-desktop
           if (-not (Test-Path "windows")) { flutter create --platforms windows . }
+          flutter pub upgrade
           flutter pub get
           flutter build windows --release
       - name: Package Windows
         shell: pwsh
         run: |
           Compress-Archive -Path "example/build/windows/x64/runner/Release/*" -DestinationPath "example-windows.zip"
-      - name: Upload Windows Asset
+      - name: Release Windows
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.versioning.outputs.version }}
