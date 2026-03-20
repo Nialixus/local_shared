@@ -37,7 +37,6 @@ class SharedCollection {
 
       return result;
     } catch (e) {
-      debugPrint("Failed to get ids, reason: $e");
       return result;
     }
   }
@@ -145,7 +144,8 @@ class SharedCollection {
       }
 
       // [3] Updating the collection 🎉.
-      final bool result = await Shared._create(id, (collection ?? {}).merge(document));
+      final bool result =
+          await Shared._create(id, (collection ?? {}).merge(document));
 
       // [4] Notify the stream about the change in the collection 📣.
       _controller.add({
@@ -242,8 +242,8 @@ class SharedCollection {
           success: delete,
           message: delete
               ? 'Successfully migrated the collection from ID `${this.id}` to ID `$id`.'
-              : 'Failed to clear the old collection after migrating to the new ID. '
-                  'Please try deleting the collection with ID `${this.id}` manually.',
+              : '''Failed to clear the old collection after migrating to the new ID. 
+              Please try deleting the collection with ID `${this.id}` manually.''',
           data: [
             for (var item
                 in ((await Shared._read(delete ? id : this.id)) ?? {}).entries)
@@ -259,7 +259,6 @@ class SharedCollection {
       return SharedNone(message: '$e');
     }
   }
-
 
   /// Deletes the collection.
   ///
@@ -329,7 +328,7 @@ class SharedCollection {
   /// await Shared.collection(id).docs(id)...
   /// ```
   SharedManyDocument docs(Iterable<String> ids) {
-    return SharedManyDocument(ids, collection: this);
+    return documents(ids);
   }
 
   /// Another shortcut to interact with [SharedManyDocument] that not so short compared to [docs].
@@ -339,7 +338,7 @@ class SharedCollection {
   /// await Shared.collection(id).documents(id)...
   /// ```
   SharedManyDocument documents(Iterable<String> ids) {
-    return docs(ids);
+    return SharedManyDocument(ids, collection: this);
   }
 
   @override

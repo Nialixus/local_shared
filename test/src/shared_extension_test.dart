@@ -5,7 +5,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('SharedExtension Test', () {
-    test('JSON merge should preserve existing target values and merge nested maps', () {
+    test(
+        'JSON merge should preserve existing target values and merge nested maps',
+        () {
       final source = <String, dynamic>{
         'name': 'source',
         'meta': {'a': 1, 'b': 2},
@@ -30,7 +32,9 @@ void main() {
 
     test('SharedResponse extension one/many with SharedOne and SharedMany', () {
       const one = SharedOne(success: true, message: 'ok', data: {'k': 1});
-      const many = SharedMany(success: true, message: 'ok', data: [{'k': 1}]);
+      const many = SharedMany(success: true, message: 'ok', data: [
+        {'k': 1}
+      ]);
 
       expect(one.one, {'k': 1});
       expect(one.many, isNull);
@@ -38,14 +42,46 @@ void main() {
       expect(many.many, isA<List<Map<String, dynamic>>>());
     });
 
-    test('FutureSharedResponse extension handles SharedFuture correctly', () async {
-      final futureOne = Future.value(const SharedOne(success: true, message: 'ok', data: {'foo': 'bar'}));
-      final futureMany = Future.value(const SharedMany(success: true, message: 'ok', data: [{'foo': 'bar'}]));
+    test('FutureSharedResponse extension handles SharedFuture correctly',
+        () async {
+      final futureOne = Future.value(
+          const SharedOne(success: true, message: 'ok', data: {'foo': 'bar'}));
+      final futureMany =
+          Future.value(const SharedMany(success: true, message: 'ok', data: [
+        {'foo': 'bar'}
+      ]));
 
       expect(await futureOne.one(), {'foo': 'bar'});
       expect(await futureOne.many(), isNull);
       expect(await futureMany.one(), isNull);
       expect(await futureMany.many(), isA<List<Map<String, dynamic>>>());
     });
+
+    // test('JSON validate should throw on invalid nested type in list', () {
+    //   final list = ['a', 1, {'b': true}, [2.3]];
+    //   expect(() => list.validate([String, int, double, bool, List, JSON, Null], key: 'root'), returnsNormally);
+
+    //   final invalidList = ['a', 1, DateTime.now()];
+    //   expect(
+    //     () => invalidList.validate([String, int, double, bool, List, JSON, Null], key: 'root'),
+    //     throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('Invalid type for key "root"'))),
+    //   );
+    // });
+
+    // test('JSON map validate should throw on invalid nested type in map', () {
+    //   final json = <String, dynamic>{
+    //     'valid': {'a': 'b'},
+    //     'validArray': [1, 2, 3],
+    //   };
+    //   expect(() => json.validate([String, int, double, bool, List, JSON, Null], key: 'root'), returnsNormally);
+
+    //   final invalidJson = <String, dynamic>{
+    //     'invalid': {'x': DateTime(2022)},
+    //   };
+    //   expect(
+    //     () => invalidJson.validate([String, int, double, bool, List, JSON, Null], key: 'root'),
+    //     throwsA(isA<ArgumentError>().having((e) => e.message, 'message', contains('Invalid type for key "root.invalid"'))),
+    //   );
+    // });
   });
 }

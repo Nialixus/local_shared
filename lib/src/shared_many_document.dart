@@ -62,10 +62,13 @@ class SharedManyDocument {
           this.collection.id,
           ({
             ...collection,
-            for (int i = 0; i < ids.length; i++)...(){
-              final id = ids.elementAt(i);
-              return {id:(collection?[id] as JSON? ?? {}).merge( document(i))};
-            }(),  
+            for (int i = 0; i < ids.length; i++)
+              ...() {
+                final id = ids.elementAt(i);
+                return {
+                  id: (collection?[id] as JSON? ?? {}).merge(document(i))
+                };
+              }(),
           }),
         );
 
@@ -120,9 +123,9 @@ class SharedManyDocument {
       if (!skip) {
         for (String id in ids) {
           if (collection[id] == null) {
-            throw 'Unable to read document. '
-                'The specified document with ID `$id` does not exist. '
-                'To skip checking document existence, set parameter `skip` to true.';
+            throw '''Unable to read document. 
+            The specified document with ID `$id` does not exist. 
+            To skip checking document existence, set parameter `skip` to true.''';
           }
         }
       }
@@ -166,19 +169,16 @@ class SharedManyDocument {
 
       // [2] Check if collection exists or not 👻.
       if (collection == null && !force) {
-        throw 'Unable to update documents. '
-            'The specified collection with ID `${this.collection.id}` does not exist. '
-            'To forcibly continue, '
-            'set the `force` parameter to true. '
-            'This action will create a new collection and create new documents within it.';
+        throw '''Unable to update documents. 
+        The specified collection with ID `${this.collection.id}` does not exist. 
+        To forcibly continue, 
+        set the `force` parameter to true. 
+        This action will create a new collection and create new documents within it.''';
       }
-
-      // [3] Make the collection null safety ⛑.
-      collection = collection ?? {};
 
       // [4] Check if document exist or not 🕊.
       for (String id in ids) {
-        if (collection[id] == null && !force) {
+        if (collection?[id] == null && !force) {
           throw 'Unable to update the document. '
               'The specified document with ID `$id` does not exist. '
               'To forcibly continue, '
@@ -189,9 +189,10 @@ class SharedManyDocument {
 
       // [5] Updating the document 💼.
       bool result = await Shared._create(this.collection.id, {
-        ...collection,
+        ...(collection ?? {}),
         for (int i = 0; i < ids.length; i++)
-          ids.elementAt(i): (collection[ids.elementAt(i)] as JSON? ?? {}).merge(
+          ids.elementAt(i):
+              (collection?[ids.elementAt(i)] as JSON? ?? {}).merge(
             document(i),
           ),
       });
@@ -238,8 +239,8 @@ class SharedManyDocument {
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
-        throw 'Unable to delete documents. '
-            'The specified collection with ID `${this.collection.id}` does not exist.';
+        throw '''Unable to delete documents. 
+        The specified collection with ID `${this.collection.id}` does not exist.''';
       }
 
       // [3] Watch initial length of collection
@@ -293,7 +294,6 @@ class SharedManyDocument {
     }
   }
 
-
   Future<SharedResponse> migrate(
     String id, {
     bool merge = false,
@@ -305,8 +305,8 @@ class SharedManyDocument {
 
       // [2] Source collection existence.
       if (source.isEmpty && !force) {
-        throw 'Unable to migrate documents. '
-            'The collection with ID `${collection.id}` does not exist.';
+        throw '''Unable to migrate documents. 
+        The collection with ID `${collection.id}` does not exist.''';
       }
 
       // [3] Source and destination document cannot be identical unless forced.
@@ -339,8 +339,8 @@ class SharedManyDocument {
         }
 
         if (doc is! JSON) {
-          throw 'Unable to migrate documents. '
-              'Source document with ID `$docId` has invalid type.';
+          throw '''Unable to migrate documents. 
+          Source document with ID `$docId` has invalid type.''';
         }
 
         migratedData = hasData ? migratedData.merge(doc) : JSON.from(doc);

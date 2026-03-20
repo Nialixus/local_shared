@@ -144,25 +144,25 @@ class SharedDocument {
 
       // [2] Check if collection exists or not 👻.
       if (collection == null && !force) {
-        throw 'Unable to update the document. '
-            'The specified collection with ID `${this.collection.id}` does not exist. '
-            'To forcibly continue, '
-            'set the `force` parameter to true. '
-            'This action will create a new collection and a new document.';
+        throw '''Unable to update the document. 
+        The specified collection with ID `${this.collection.id}` does not exist. 
+        To forcibly continue, 
+        set the `force` parameter to true. 
+        This action will create a new collection and a new document.''';
       }
 
       // [3] Check if document exist or not 🕊.
       if (collection?[id] == null && !force) {
-        throw 'Unable to update the document. '
-            'The specified document with ID `$id` does not exist. '
-            'To forcibly continue, '
-            'set the `force` parameter to true. '
-            'This action will create a new document.';
+        throw '''Unable to update the document. 
+        The specified document with ID `$id` does not exist. 
+        To forcibly continue, 
+        set the `force` parameter to true. 
+        This action will create a new document.''';
       }
 
       // [4] Updating the document 💼.
       bool result = await Shared._create(this.collection.id, <String, dynamic>{
-        ...collection ?? {},
+        ...(collection ?? {}),
         id: (collection?[id] as JSON? ?? {}).merge(document),
       });
 
@@ -211,8 +211,8 @@ class SharedDocument {
 
       // [2] Check collection existence 🔍.
       if (collection == null && !force) {
-        throw 'Unable to migrate the document. '
-            'The specified collection with ID `${this.collection.id}` does not exist.';
+        throw '''Unable to migrate the document. 
+        The specified collection with ID `${this.collection.id}` does not exist.''';
       }
 
       // [3] Source and destination cannot be identical.
@@ -223,8 +223,8 @@ class SharedDocument {
 
       // [4] Source document existence.
       if (collection?[this.id] == null && !force) {
-        throw 'Unable to migrate the document. '
-            'The source document with ID `${this.id}` does not exist.';
+        throw '''Unable to migrate the document. 
+        The source document with ID `${this.id}` does not exist.''';
       }
 
       // [5] Target existence check.
@@ -288,8 +288,8 @@ class SharedDocument {
 
       // [2] Check if collection exists or not 👻.
       if (collection == null) {
-        throw 'Unable to delete the document. '
-            'The specified collection with ID `${this.collection.id}` does not exist.';
+        throw '''Unable to delete the document. 
+        The specified collection with ID `${this.collection.id}` does not exist.''';
       }
 
       // [3] Check if document exists or not 🕊.
