@@ -1,0 +1,87 @@
+name: Auto Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  # This job just calculates the version once to keep both builds in sync
+  versioning:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Version
+        id: get_version
+        run: |
+          BASE_VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          echo "VERSION=${BASE_VERSION}-${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+  build-android-web:
+    needs: versioning
+    name: Build Android and Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Build
+        run: |
+          cd example
+          flutter pub get
+          if [ ! -d "android" ]; then flutter create --platforms android .; fi
+          if [ ! -d "web" ]; then flutter create --platforms web .; fi
+          flutter build apk --release
+          flutter build web
+      - name: Package Web
+        run: |
+          cd example/build/web
+          zip -r ../../../example-web.zip .
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.versioning.outputs.version }}
+          name: Release ${{ needs.versioning.outputs.version }}
+          generate_release_notes: true
+          files: |
+            example/build/app/outputs/flutter-apk/app-release.apk
+            example-web.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    needs: [versioning, build-android-web] # Wait for collection existence and versioning
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Build Windows
+        shell: pwsh
+        run: |
+          cd example
+          flutter config --enable-windows-desktop
+          if (-not (Test-Path "windows")) { flutter create --platforms windows . }
+          flutter pub get
+          flutter build windows --release
+      - name: Package Windows
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "example/build/windows/x64/runner/Release/*" -DestinationPath "example-windows.zip"
+      - name: Upload Windows Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.versioning.outputs.version }}
+          files: example-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
