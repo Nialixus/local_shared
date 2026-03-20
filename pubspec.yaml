@@ -10,11 +10,8 @@ screenshots:
   - description: 'Local Shared Logo'
     path: logo.png
 topics:
-  - flutter
   - secure-storage
-  - shared-preferences
   - local-storage
-  - data-sync
   - database
   - caching
   - crud
