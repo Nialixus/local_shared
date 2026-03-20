@@ -82,6 +82,25 @@ void main() {
       expect(response.message, contains('does not exist'));
     });
 
+    test('Delete documents when collection is missing fails', () async {
+      await collection.delete();
+
+      final response = await collection.docs(['docA', 'docB']).delete();
+
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains('does not exist'));
+    });
+
+    test('Read missing docs with default skip returns no results message', () async {
+      final response = await collection.docs(['docA']).read();
+
+      expect(response, isA<SharedMany>());
+      expect(response.success, isFalse);
+      expect(response.message, contains("There's no single document"));
+      expect(response.data, isEmpty);
+    });
+
     test('Read missing doc with skip false throws', () async {
       final response = await collection.docs(['docA']).read(skip: false);
       expect(response, isA<SharedNone>());
@@ -109,6 +128,17 @@ void main() {
       expect(response.success, isTrue);
       final rest = (await collection.read()).data as List<JSON>?;
       expect(rest, hasLength(1));
+    });
+
+    test('Delete docs not found returns no single document message', () async {
+      await collection.docs(['docA', 'docB']).create((index) {
+        return index == 0 ? docA : docB;
+      });
+
+      final response = await collection.docs(['docC']).delete();
+      expect(response, isA<SharedNone>());
+      expect(response.success, isFalse);
+      expect(response.message, contains("There's no single document with ID `docC` found"));
     });
 
     test('Migrate many documents into one target document', () async {

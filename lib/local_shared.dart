@@ -6,7 +6,6 @@ library local_shared;
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,6 +38,7 @@ class LocalShared {
   ///
   /// The [id] is used as a namespace prefix for all saved keys.
   const LocalShared(this.id);
+
   /// The unique identifier for this [LocalShared] database instance
   /// which will be used as prefix for [SharedPreferences].
   final String id;
@@ -130,7 +130,7 @@ class LocalShared {
   /// Shared.col(collectionID)...
   /// ```
   static SharedCollection col(String id) {
-    return SharedCollection(id, controller: _controller);
+    return LocalShared.collection(id);
   }
 
   /// Another shortcut that not so short compare to [col]
@@ -144,7 +144,7 @@ class LocalShared {
   /// Shared.collection(collectionID)...
   /// ```
   static SharedCollection collection(String id) {
-    return LocalShared.col(id);
+    return SharedCollection(id, controller: _controller);
   }
 
   /// A stream that listens for any changes when you're interacting with collections or documents

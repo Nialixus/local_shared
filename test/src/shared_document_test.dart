@@ -228,6 +228,26 @@ void main() {
       expect(response.message, contains('cannot be the same'));
     });
 
+    test('Migrate on Missing Collection without Force fails', () async {
+      await collection.delete();
+
+      final response = await document.migrate(documentId2, force: false);
+
+      expect(response.success, isFalse);
+      expect(response, isA<SharedNone>());
+      expect(response.message, contains('does not exist'));
+    });
+
+    test('Migrate Missing Source without Force fails', () async {
+      await collection.create(replace: true);
+
+      final response = await document.migrate(documentId2, force: false);
+
+      expect(response.success, isFalse);
+      expect(response, isA<SharedNone>());
+      expect(response.message, contains('source document with ID'));
+    });
+
     test('Migrate Missing Source With Force Creates Target', () async {
       await collection.create(replace: true);
 
@@ -267,6 +287,25 @@ void main() {
       // Verify it's actually gone
       final readResponse = await document.read();
       expect(readResponse.success, isFalse);
+    });
+
+    test('Delete Document in Non-Existing Collection', () async {
+      // Arrange: Remove the collection entirely
+      await collection.delete();
+
+      // Act: Delete a document when collection is missing
+      final response = await document.delete();
+
+      // Assert: Should fail
+      expect(response.success, isFalse);
+      expect(response, isA<SharedNone>());
+      expect(response.message, contains('does not exist'));
+    });
+
+    test('SharedDocument.toString includes id and collection', () async {
+      final str = document.toString();
+      expect(str, contains('id: $documentId'));
+      expect(str, contains('collection:')); // at least mentions collection
     });
 
     test('Delete Non-Existing Document', () async {

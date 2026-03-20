@@ -141,7 +141,8 @@ void main() {
       // Assert: Should return these values
       expect(response.success, isTrue);
       expect(response.data, isA<List>());
-      expect(response.data, contains(equals({'key': 'updated', 'newField': 'yes', '1': '1'})));
+      expect(response.data,
+          contains(equals({'key': 'updated', 'newField': 'yes', '1': '1'})));
       expect(response, isA<SharedMany>());
       expect(response.message, contains('has been successfully updated'));
     });
@@ -303,14 +304,16 @@ void main() {
       expect(response, isA<SharedMany>());
     });
 
-    test('Migrate Documents from Collection Using SharedManyDocument', () async {
+    test('Migrate Documents from Collection Using SharedManyDocument',
+        () async {
       // Arrange: Setup source collection and documents
       await collection.create();
       await document.create(data);
       await collection.document('document_2').create({'x': 'y'});
 
       // Act: Migrate specific documents from source into a single target document
-      final response = await collection.docs([documentId, 'document_2']).migrate('merged_document');
+      final response = await collection
+          .docs([documentId, 'document_2']).migrate('merged_document');
       final targetRead = await collection.doc('merged_document').read();
       final sourceRead = await collection.read();
 
@@ -322,7 +325,13 @@ void main() {
       expect(targetRead.one, containsPair('x', 'y'));
       expect(sourceRead.success, isTrue);
       expect(sourceRead.data, isA<List<JSON>>());
-      expect(sourceRead.data, contains(equals({'x': 'y', 'key': 'value1', '1': '1'}))); // merged doc should be new target not in source list
+      expect(
+          sourceRead.data,
+          contains(equals({
+            'x': 'y',
+            'key': 'value1',
+            '1': '1'
+          }))); // merged doc should be new target not in source list
     });
 
     test('Migrate Documents to Target With Merge', () async {
@@ -332,14 +341,18 @@ void main() {
       await collection.doc('merged_document').create({'1': '2'});
 
       // Act: Migrate with merge true into the existing target document
-      final response = await collection.docs([documentId]).migrate('merged_document', merge: true);
+      final response = await collection
+          .docs([documentId]).migrate('merged_document', merge: true);
       final targetRead = await collection.doc('merged_document').read();
 
       // Assert: Should merge existing target document
       expect(response.success, isTrue);
       expect(targetRead.success, isTrue);
       expect(targetRead.one, containsPair('key', 'value1'));
-      expect(targetRead.one, containsPair('1', '1')); // existing value preserved by target precedence
+      expect(
+          targetRead.one,
+          containsPair(
+              '1', '1')); // existing value preserved by target precedence
     });
 
     test('Delete Collection', () async {
