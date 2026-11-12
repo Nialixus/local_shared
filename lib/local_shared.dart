@@ -17,7 +17,7 @@ part 'src/shared_extension.dart';
 part 'src/shared_many_document.dart';
 part 'src/shared_response.dart';
 
-/// Define Map<String, dynamic> as JSON values.
+/// Define a dynamic map as JSON values.
 typedef JSON = Map<String, dynamic>;
 
 /// A shorter term for [LocalShared].
