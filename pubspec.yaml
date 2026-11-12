@@ -1,6 +1,6 @@
 name: local_shared
 description: Lightweight cross-platform secure local storage for Flutter. Native-safe JSON collections and documents with tested CRUD, batch operations, migration semantics, and stream updates.
-version: 3.0.0
+version: 3.1.0
 homepage: https://inidia.app
 repository: https://github.com/Nialixus/local_shared.git
 issue_tracker: https://github.com/Nialixus/local_shared/issues
@@ -30,8 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_secure_storage: ^10.0.0
-  shared_preferences: ^2.3.3
+  flutter_secure_storage: ^11.2.0
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   flutter_lints: ^2.0.0
