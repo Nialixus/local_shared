@@ -58,29 +58,29 @@ class SharedManyDocument {
         }
 
         // [5] Creating the documents 🎉.
-        bool result = await Shared._create(
-          this.collection.id,
-          ({
-            ...collection,
-            for (int i = 0; i < ids.length; i++)
-              ...() {
-                final id = ids.elementAt(i);
-                return {
-                  id: (collection?[id] as JSON? ?? {}).merge(document(i))
-                };
-              }(),
-          }),
-        );
+        final JSON updated = <String, dynamic>{
+          ...collection,
+          for (int i = 0; i < ids.length; i++)
+            ...() {
+              final id = ids.elementAt(i);
+              return {
+                id: (collection?[id] as JSON? ?? {}).merge(document(i))
+              };
+            }(),
+        };
+        bool result = await Shared._create(this.collection.id, updated);
+        final JSON current = result ? updated : collection;
 
         // [6] Notify the stream about the change in the collection 📣.
-        this.collection._controller.add({
-          'id': this.collection.id,
-          'documents': [
-            for (var item
-                in ((await Shared._read(this.collection.id)) ?? {}).entries)
-              {'id': item.key, 'data': item.value},
-          ],
-        });
+        if (!this.collection._controller.isClosed) {
+          this.collection._controller.add({
+            'id': this.collection.id,
+            'documents': [
+              for (var item in current.entries)
+                {'id': item.key, 'data': item.value},
+            ],
+          });
+        }
 
         // [7] Returning the result of creating these document 🚀.
         return SharedMany(
@@ -89,7 +89,7 @@ class SharedManyDocument {
               ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully ${merge ? 'merged' : 'created'}.'
               : 'Failed to ${merge ? 'replace' : 'create'} ${ids.length} document from specified IDs `${ids.join('`, `')}`. Please try again.',
           data: [
-            for (var id in ids) (await Shared._read(this.collection.id))?[id],
+            for (var id in ids) current[id],
           ].where((e) => e != null).map((e) => e as JSON).toList(),
         );
       }
@@ -188,24 +188,27 @@ class SharedManyDocument {
       }
 
       // [5] Updating the document 💼.
-      bool result = await Shared._create(this.collection.id, {
+      final JSON updated = <String, dynamic>{
         ...(collection ?? {}),
         for (int i = 0; i < ids.length; i++)
           ids.elementAt(i):
               (collection?[ids.elementAt(i)] as JSON? ?? {}).merge(
             document(i),
           ),
-      });
+      };
+      bool result = await Shared._create(this.collection.id, updated);
+      final JSON current = result ? updated : (collection ?? {});
 
       // [6] Notify the stream about the change in the collection 📣.
-      this.collection._controller.add({
-        'id': this.collection.id,
-        'documents': [
-          for (var item
-              in (await Shared._read(this.collection.id) ?? {}).entries)
-            {'id': item.key, 'data': item.value},
-        ],
-      });
+      if (!this.collection._controller.isClosed) {
+        this.collection._controller.add({
+          'id': this.collection.id,
+          'documents': [
+            for (var item in current.entries)
+              {'id': item.key, 'data': item.value},
+          ],
+        });
+      }
 
       // [7] Returning the result of updating these document 🚀.
       return SharedMany(
@@ -214,7 +217,7 @@ class SharedManyDocument {
             ? '${ids.length} document from specified IDs `${ids.join('`, `')}` has been successfully updated.'
             : 'Failed to update ${ids.length} documents from specified IDs `${ids.join('`, `')}`. Please try again.',
         data: [
-          for (var id in ids) (await Shared._read(this.collection.id))?[id],
+          for (var id in ids) current[id],
         ].where((e) => e != null).map((e) => e as JSON).toList(),
       );
     } catch (e) {
@@ -245,10 +248,11 @@ class SharedManyDocument {
 
       // [3] Watch initial length of collection
       int length = collection.length;
+      final JSON updated = JSON.from(collection);
 
       for (String id in ids) {
         // [4] Check if document exists or not 🕊.
-        if (collection[id] == null && !skip) {
+        if (updated[id] == null && !skip) {
           throw 'Unable to delete the document. '
               'The specified document with ID `$id` does not exist. '
               'To proceed without checking wether document exist or not, '
@@ -256,28 +260,27 @@ class SharedManyDocument {
         }
         // [5] Deleting the document 🧹.
         else {
-          collection.remove(id);
+          updated.remove(id);
         }
       }
 
       // [6] Store new collection 🚚.
-      bool result = await Shared._create(
-        this.collection.id,
-        collection,
-      );
+      bool result = await Shared._create(this.collection.id, updated);
+      final JSON current = result ? updated : collection;
 
       // [7] Notify the stream about the change in the collection 📣.
-      this.collection._controller.add({
-        'id': this.collection.id,
-        'documents': [
-          for (var item
-              in ((await Shared._read(this.collection.id)) ?? {}).entries)
-            {'id': item.key, 'data': item.value},
-        ],
-      });
+      if (!this.collection._controller.isClosed) {
+        this.collection._controller.add({
+          'id': this.collection.id,
+          'documents': [
+            for (var item in current.entries)
+              {'id': item.key, 'data': item.value},
+          ],
+        });
+      }
 
       // [8] Compare initial length to current collection length 🧮.
-      length = length - ((await Shared._read(this.collection.id))?.length ?? 0);
+      length = length - current.length;
 
       // [9] Returning the result of deleting these document 🚀.
       return SharedNone(
@@ -301,7 +304,8 @@ class SharedManyDocument {
   }) async {
     try {
       // [1] Get source collection 📂.
-      JSON source = (await Shared._read(collection.id)) ?? {};
+      final JSON original = (await Shared._read(collection.id)) ?? {};
+      final JSON source = JSON.from(original);
 
       // [2] Source collection existence.
       if (source.isEmpty && !force) {
@@ -366,15 +370,18 @@ class SharedManyDocument {
 
       // [7] Persist state 🎉.
       final bool result = await Shared._create(collection.id, source);
+      final JSON current = result ? source : original;
 
       // [8] Notify stream 📣.
-      collection._controller.add({
-        'id': collection.id,
-        'documents': [
-          for (var item in ((await Shared._read(collection.id)) ?? {}).entries)
-            {'id': item.key, 'data': item.value},
-        ],
-      });
+      if (!collection._controller.isClosed) {
+        collection._controller.add({
+          'id': collection.id,
+          'documents': [
+            for (var item in current.entries)
+              {'id': item.key, 'data': item.value},
+          ],
+        });
+      }
 
       // [9] Return result 🚀.
       return SharedOne(
@@ -382,7 +389,7 @@ class SharedManyDocument {
         message: result
             ? 'Selected documents from IDs `${ids.join('`, `')}` have been successfully migrated to document `$id`.'
             : 'Failed to migrate selected documents to document `$id`. Please try again.',
-        data: (await Shared._read(collection.id))?[id] as JSON?,
+        data: current[id] as JSON?,
       );
     } catch (e) {
       return SharedNone(message: '$e');

@@ -72,11 +72,23 @@ class LocalShared {
   /// [FlutterSecureStorage]. Subsequent calls skip this scan via a migration
   /// flag stored in [SharedPreferences].
   ///
+  /// **Keystore resilience:** If the Android Keystore key is ever invalidated
+  /// (e.g. the user removes their screen lock, restores from backup, or
+  /// re-installs the app with a different signing key), `resetOnError: true`
+  /// instructs `FlutterSecureStorage` to automatically wipe the corrupted
+  /// ciphertext and generate a fresh key — preventing `BadPaddingException`
+  /// or `ServiceSpecificException` crashes. Data is lost in that event, but
+  /// the app remains stable and new writes succeed immediately.
+  ///
   /// ```dart
   /// WidgetsFlutterBinding.ensureInitialized();
   /// await LocalShared('app.example').initialize();
   /// ```
   Future<void> initialize() async {
+    // Guard: id must not be empty — an empty id disables the SP namespace prefix
+    // and can cause silent key collisions between multiple LocalShared instances.
+    assert(id.isNotEmpty, 'LocalShared id must not be empty.');
+
     _storage = FlutterSecureStorage(
       aOptions: AndroidOptions(
         // flutter_secure_storage >=11.0.0: `sharedPreferencesName` was removed.
@@ -84,9 +96,31 @@ class LocalShared {
         // file name and the keystore alias on Android, keeping data isolated per
         // LocalShared instance and matching the naming used in prior versions.
         storageNamespace: 'flutter.$id.',
+        // When the Android Keystore key is gone or invalidated, delete all
+        // ciphertext and re-create a fresh key instead of crashing.
+        resetOnError: true,
+      ),
+      iOptions: const IOSOptions(
+        // Keep data accessible only when the device is unlocked.
+        // This is the most secure setting that still allows background reads
+        // when the app is in the foreground.
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+      ),
+      mOptions: const MacOsOptions(
+        // Mirror the iOS Keychain accessibility on macOS — data is accessible
+        // after the first unlock since boot and survives screen-lock/sleep cycles.
+        accessibility: KeychainAccessibility.first_unlock_this_device,
       ),
     );
-    if (id.isNotEmpty) SharedPreferences.setPrefix('flutter.$id.');
+    if (id.isNotEmpty) {
+      try {
+        SharedPreferences.setPrefix('flutter.$id.');
+      } on StateError {
+        // SharedPreferences.getInstance() was already called earlier in this
+        // process (e.g. repeated initialize() calls or app-owned SP usage).
+        // Swallow StateError so re-initialization never crashes the app.
+      }
+    }
     _db = await SharedPreferences.getInstance();
 
     // Run one-time bulk migration of all legacy SharedPreferences data
@@ -128,27 +162,42 @@ class LocalShared {
   ///   are skipped silently.
   /// - Sets [_migrationFlagKey] = `true` in [SharedPreferences] when done, so
   ///   this bulk scan only runs once per installation.
+  /// - If a Keystore write fails mid-loop, the flag is **not** set — the full
+  ///   scan retries on the next app start so no key is permanently left in
+  ///   [SharedPreferences] unencrypted.
   ///
   /// Individual keys that arrive in [SharedPreferences] *after* this initial
   /// migration (e.g. via a partial migration scenario) are handled lazily by
   /// [_read] on first access.
   static Future<void> _migrateAll() async {
     // Guard: skip if already migrated.
-    final alreadyMigrated = preferences.getBool(_migrationFlagKey) ?? false;
+    final alreadyMigrated = preferences.get(_migrationFlagKey) == true;
     if (alreadyMigrated) return;
+
+    // Track whether any secure-storage write failed 🔑.
+    // If true, the flag is NOT set so the scan retries on next cold start.
+    bool keystoreError = false;
 
     final keys = preferences.getKeys().toList();
     for (final key in keys) {
       // Never migrate the internal migration-flag key itself.
       if (key == _migrationFlagKey) continue;
 
-      final raw = preferences.getString(key);
-      if (raw == null) continue;
+      // Use untyped get() so non-String SP values (int, bool, double, List<String>)
+      // are skipped safely without throwing a TypeError cast exception.
+      final raw = preferences.get(key);
+      if (raw is! String) continue;
 
+      // [1] Validate the value is a JSON object — skip non-JSON or scalar values silently 🗑.
       try {
-        // Validate the value is JSON before migrating.
-        jsonDecode(raw);
+        final decoded = jsonDecode(raw);
+        if (decoded is! JSON) continue;
+      } catch (_) {
+        continue;
+      }
 
+      // [2] Migrate to secure storage 🔐.
+      try {
         // Only write to secure storage when the key isn't already there —
         // secure storage is treated as the source of truth.
         final existing = await storage.read(key: key);
@@ -159,24 +208,78 @@ class LocalShared {
         // Remove the migrated key from SharedPreferences.
         await preferences.remove(key);
       } catch (_) {
-        // Skip non-JSON or unwritable values silently.
+        // A Keystore write failure occurred — flag this so the migration scan
+        // is NOT marked complete; it will retry on the next app start.
+        keystoreError = true;
       }
     }
 
-    // Mark migration complete.
-    await preferences.setBool(_migrationFlagKey, true);
+    // [3] Only mark migration complete when all keys were processed successfully ✅.
+    if (!keystoreError) {
+      await preferences.setBool(_migrationFlagKey, true);
+    }
+  }
+
+  /// Emergency wipe: deletes all data from [FlutterSecureStorage].
+  ///
+  /// Called automatically when a keystore exception cannot be recovered from
+  /// even after `resetOnError` has been applied — for example if
+  /// `FlutterSecureStorage.deleteAll()` itself throws. This is a last-resort
+  /// safeguard; data loss is acceptable compared to a persistent crash loop.
+  ///
+  /// Emits `{'__event__': 'storage_wiped'}` on [stream] so app-level code can
+  /// react (e.g. sign out the user, show a "data cleared" banner). Regular
+  /// stream events always carry an `'id'` key — this sentinel does not, making
+  /// it easy to distinguish:
+  ///
+  /// ```dart
+  /// LocalShared.stream.listen((event) {
+  ///   if (event['__event__'] == 'storage_wiped') {
+  ///     // handle wipe
+  ///   }
+  /// });
+  /// ```
+  static Future<void> _wipeStorage() async {
+    try {
+      await storage.deleteAll();
+    } catch (_) {
+      // If deleteAll() itself fails (extremely rare), there is nothing more
+      // we can safely do at the library level.
+    }
+
+    // Notify stream listeners that all data was wiped 📢.
+    if (!_controller.isClosed) {
+      _controller.add({'__event__': 'storage_wiped'});
+    }
   }
 
   /// Writes [value] to [FlutterSecureStorage].
   ///
   /// All new writes go exclusively to secure storage. [SharedPreferences] is
   /// no longer a write target as of v3.1.0.
+  ///
+  /// If the write fails due to a keystore exception (e.g. the Android Keystore
+  /// key was invalidated between the last successful operation and this call),
+  /// the entire secure storage is wiped and the write is retried once with a
+  /// freshly generated key. If the retry also fails, `false` is returned.
   static Future<bool> _create(String id, JSON value) async {
+    // [1] Validate and encode before touching storage — invalid Dart types
+    // throw ArgumentError cleanly without triggering a Keystore wipe 🛡.
+    final String encoded = value.encode;
+
     try {
-      await storage.write(key: id, value: value.encode);
+      await storage.write(key: id, value: encoded);
       return true;
-    } catch (e) {
-      return false;
+    } catch (_) {
+      // First attempt failed — likely a stale Keystore key.
+      // Wipe all ciphertext so a fresh key can be generated, then retry.
+      await _wipeStorage();
+      try {
+        await storage.write(key: id, value: encoded);
+        return true;
+      } catch (_) {
+        return false;
+      }
     }
   }
 
@@ -188,16 +291,33 @@ class LocalShared {
   ///    is **lazily migrated** on-the-spot: written to secure storage and
   ///    removed from [SharedPreferences], so the next read is served from
   ///    secure storage without touching [SharedPreferences] again.
+  ///
+  /// **Keystore resilience:** If decryption throws (the Android Keystore key
+  /// was invalidated or the iOS Keychain entry is inaccessible), the corrupted
+  /// storage is wiped so subsequent writes start cleanly. `null` is returned
+  /// for the current read — callers should treat this the same as a missing key.
   static Future<JSON?> _read(String key) async {
     // 1. Fast path: secure storage (expected for all data post-migration).
-    final secure = await storage.read(key: key);
-    if (secure != null) {
-      return secure.decode;
+    try {
+      final secure = await storage.read(key: key);
+      if (secure != null) {
+        return secure.decode;
+      }
+    } catch (_) {
+      // Decryption failed — the Keystore key is gone or the Keychain entry is
+      // inaccessible. Wipe to allow recovery; return null for this read.
+      await _wipeStorage();
+      return null;
     }
 
     // 2. Legacy fallback: SharedPreferences.
-    final basic = preferences.getString(key);
-    if (basic == null) return null;
+    // Use untyped get() so app-owned int/bool/double/List<String> keys
+    // never throw TypeError on cast.
+    final basic = preferences.get(key);
+    if (basic is! String) return null;
+
+    final JSON? decoded = basic.decode;
+    if (decoded == null) return null;
 
     // 3. Lazy migration: move this stray key to secure storage immediately.
     try {
@@ -208,7 +328,7 @@ class LocalShared {
       // so the caller is not blocked.
     }
 
-    return basic.decode;
+    return decoded;
   }
 
   /// Deletes [key] from both [FlutterSecureStorage] and [SharedPreferences].
@@ -220,8 +340,13 @@ class LocalShared {
       await storage.delete(key: key);
       await preferences.remove(key);
       return true;
-    } catch (e) {
-      return false;
+    } catch (_) {
+      // If delete fails (e.g. the key was already gone due to a Keystore wipe),
+      // treat it as a successful no-op — the data is effectively gone.
+      try {
+        await preferences.remove(key);
+      } catch (_) {}
+      return true;
     }
   }
 

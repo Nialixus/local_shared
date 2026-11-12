@@ -59,22 +59,25 @@ class SharedDocument {
         }
 
         JSON merged = (collection?[id] as JSON? ?? {}).merge(document);
+        final JSON updated = <String, dynamic>{
+          ...(collection ?? {}),
+          id: merged,
+        };
 
         // [4] Creating the document 🎉.
-        bool result = await Shared._create(
-          this.collection.id,
-          ((collection ?? {})..addEntries([MapEntry(id, merged)])),
-        );
+        bool result = await Shared._create(this.collection.id, updated);
+        final JSON current = result ? updated : (collection ?? {});
 
         // [5] Notify the stream about the change in the collection 📣.
-        this.collection._controller.add({
-          'id': this.collection.id,
-          'documents': [
-            for (var item
-                in ((await Shared._read(this.collection.id)) ?? {}).entries)
-              {'id': item.key, 'data': item.value},
-          ],
-        });
+        if (!this.collection._controller.isClosed) {
+          this.collection._controller.add({
+            'id': this.collection.id,
+            'documents': [
+              for (var item in current.entries)
+                {'id': item.key, 'data': item.value},
+            ],
+          });
+        }
 
         // [6] Returning the result of creating this document 🚀.
         return SharedOne(
@@ -82,7 +85,7 @@ class SharedDocument {
           message: result
               ? 'The document with ID `$id` has been successfully ${merge ? 'merged' : 'created'}.'
               : 'Failed to ${merge ? 'merge' : 'create'} the document with ID `$id`. Please try again.',
-          data: (await Shared._read(this.collection.id))?[id],
+          data: current[id],
         );
       }
     } catch (e) {
@@ -161,20 +164,23 @@ class SharedDocument {
       }
 
       // [4] Updating the document 💼.
-      bool result = await Shared._create(this.collection.id, <String, dynamic>{
+      final JSON updated = <String, dynamic>{
         ...(collection ?? {}),
         id: (collection?[id] as JSON? ?? {}).merge(document),
-      });
+      };
+      bool result = await Shared._create(this.collection.id, updated);
+      final JSON current = result ? updated : (collection ?? {});
 
       // [5] Notify the stream about the change in the collection 📣.
-      this.collection._controller.add({
-        'id': this.collection.id,
-        'documents': [
-          for (var item
-              in ((await Shared._read(this.collection.id)) ?? {}).entries)
-            {'id': item.key, 'data': item.value},
-        ],
-      });
+      if (!this.collection._controller.isClosed) {
+        this.collection._controller.add({
+          'id': this.collection.id,
+          'documents': [
+            for (var item in current.entries)
+              {'id': item.key, 'data': item.value},
+          ],
+        });
+      }
 
       // [6] Returning the result of updating this document 🚀.
       return SharedOne(
@@ -182,7 +188,7 @@ class SharedDocument {
         message: result
             ? 'The document with ID `$id` has been successfully updated.'
             : 'Failed to update the document with ID `$id`. Please try again.',
-        data: (await Shared._read(this.collection.id))?[id],
+        data: current[id],
       );
     } catch (e) {
       // [7] Returning bad news 🧨.
@@ -246,16 +252,18 @@ class SharedDocument {
         ..[id] = migratedDoc;
 
       bool result = await Shared._create(this.collection.id, updatedCollection);
+      final JSON current = result ? updatedCollection : (collection ?? {});
 
       // [7] Notify stream 📣.
-      this.collection._controller.add({
-        'id': this.collection.id,
-        'documents': [
-          for (var item
-              in ((await Shared._read(this.collection.id)) ?? {}).entries)
-            {'id': item.key, 'data': item.value},
-        ],
-      });
+      if (!this.collection._controller.isClosed) {
+        this.collection._controller.add({
+          'id': this.collection.id,
+          'documents': [
+            for (var item in current.entries)
+              {'id': item.key, 'data': item.value},
+          ],
+        });
+      }
 
       // [8] Return.
       if (result) {
@@ -299,20 +307,20 @@ class SharedDocument {
       }
 
       // [4] Deleting the document 🧹.
-      bool result = await Shared._create(
-        this.collection.id,
-        (collection..remove(id)),
-      );
+      final JSON updated = JSON.from(collection)..remove(id);
+      bool result = await Shared._create(this.collection.id, updated);
+      final JSON current = result ? updated : collection;
 
       // [5] Notify the stream about the change in the collection 📣.
-      this.collection._controller.add({
-        'id': this.collection.id,
-        'documents': [
-          for (var item
-              in (await Shared._read(this.collection.id) ?? {}).entries)
-            {'id': item.key, 'data': item.value},
-        ],
-      });
+      if (!this.collection._controller.isClosed) {
+        this.collection._controller.add({
+          'id': this.collection.id,
+          'documents': [
+            for (var item in current.entries)
+              {'id': item.key, 'data': item.value},
+          ],
+        });
+      }
 
       // [6] Returning the result of deleting this document 🚀.
       return SharedNone(

@@ -77,5 +77,30 @@ void main() {
       await sub.cancel();
       await LocalShared.close();
     });
+
+    test('CRUD operations do not crash after LocalShared.close()', () async {
+      const db = LocalShared('test_db_closed_stream');
+      await db.initialize();
+
+      // Explicitly close stream
+      await LocalShared.close();
+
+      final coll = Shared.col('closed_stream_col');
+      // Should not throw StateError on closed controller
+      final createResp = await coll.create();
+      expect(createResp.success, isTrue);
+
+      final docCreate = await coll.doc('doc1').create({'key': 'val'});
+      expect(docCreate.success, isTrue);
+
+      final docUpdate = await coll.doc('doc1').update({'key': 'val2'});
+      expect(docUpdate.success, isTrue);
+
+      final docDelete = await coll.doc('doc1').delete();
+      expect(docDelete.success, isTrue);
+
+      final collDelete = await coll.delete();
+      expect(collDelete.success, isTrue);
+    });
   });
 }

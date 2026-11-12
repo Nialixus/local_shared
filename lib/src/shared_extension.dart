@@ -3,7 +3,18 @@ part of '../local_shared.dart';
 /// Utility extensions used internally for JSON encoding/decoding and validation.
 extension _StringExtension on String {
   /// Decodes a JSON-formatted string into a [JSON] object.
-  JSON get decode => jsonDecode(this);
+  ///
+  /// Returns `null` when the string is not valid JSON (e.g. a partial OS write
+  /// or storage truncation), so callers treat corrupted entries the same as a
+  /// missing key — no unhandled [FormatException] propagates to the caller.
+  JSON? get decode {
+    try {
+      return jsonDecode(this);
+    } catch (_) {
+      // Corrupted or partial data — treat as missing 🗑.
+      return null;
+    }
+  }
 }
 
 /// Extension methods for enhancing [List] functionality.
@@ -81,10 +92,25 @@ extension _JSONExtension on JSON {
   /// The method also performs a validation check on the types of entries in the [JSON] object.
   String get encode {
     for (var entry in entries) {
-      (entry.value as JSON).validate(
-        [String, int, double, bool, List, JSON, Null],
-        key: entry.key,
-      );
+      if (entry.value is JSON) {
+        // [1] Validate the nested document 📋.
+        (entry.value as JSON).validate(
+          [String, int, double, bool, List, JSON, Null],
+          key: entry.key,
+        );
+      } else if (entry.value is List) {
+        // [2] Validate a top-level list value 📋.
+        (entry.value as List).validate(
+          [String, int, double, bool, List, JSON, Null],
+          key: entry.key,
+        );
+      } else if (![String, int, double, bool, Null]
+          .contains(entry.value?.runtimeType)) {
+        // [3] Reject unsupported scalar types 🚫.
+        throw ArgumentError(
+          'Invalid type for key "${entry.key}": ${entry.value.runtimeType}',
+        );
+      }
     }
     return jsonEncode(this);
   }

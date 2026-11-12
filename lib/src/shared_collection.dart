@@ -70,10 +70,12 @@ class SharedCollection {
       bool result = await Shared._create(id, collection);
 
       // [4] Notify the stream about the change in the collection 📣.
-      _controller.add({
-        'id': id,
-        'documents': [for (var item in collection.entries) item.value]
-      });
+      if (!_controller.isClosed) {
+        _controller.add({
+          'id': id,
+          'documents': [for (var item in collection.entries) item.value]
+        });
+      }
 
       // [5] Returning the result of creating / replacing this collection 🚀.
       return SharedMany(
@@ -144,19 +146,20 @@ class SharedCollection {
       }
 
       // [3] Updating the collection 🎉.
-      final bool result =
-          await Shared._create(id, (collection ?? {}).merge(document));
+      final JSON updated = (collection ?? {}).merge(document);
+      final bool result = await Shared._create(id, updated);
+      final JSON current = result ? updated : (collection ?? {});
 
       // [4] Notify the stream about the change in the collection 📣.
-      _controller.add({
-        'id': id,
-        'documents': [
-          for (var entry in ((await Shared._read(id)) ?? {}).entries)
-            {'id': entry.key, 'data': entry.value},
-        ]
-      });
-
-      final JSON updated = (await Shared._read(id)) ?? {};
+      if (!_controller.isClosed) {
+        _controller.add({
+          'id': id,
+          'documents': [
+            for (var entry in current.entries)
+              {'id': entry.key, 'data': entry.value},
+          ]
+        });
+      }
 
       // [5] Returning the result of updating this collection 🚀.
       return SharedMany(
@@ -164,7 +167,7 @@ class SharedCollection {
         message: result
             ? 'The collection with ID `$id` has been successfully updated.'
             : 'Failed to update the collection with ID `$id`. Please try again.',
-        data: [for (var item in updated.entries) item.value as JSON],
+        data: [for (var item in current.entries) item.value as JSON],
       );
     } catch (e) {
       // [6] Returning bad news 🧨.
@@ -193,7 +196,7 @@ class SharedCollection {
       JSON? collection = await Shared._read(this.id);
 
       // [2] Get targeted collection 📂.
-      JSON? target = await Shared._read(id);
+      JSON? target = this.id == id ? collection : await Shared._read(id);
 
       // [3] Check if the current collection id is exactly the same with the new one or not 💩.
       if (this.id == id && !force) {
@@ -226,29 +229,28 @@ class SharedCollection {
       bool result = await Shared._create(id, merged);
 
       // [7] Notify the stream about the change in the collection 📣.
-      _controller.add({
-        'id': id,
-        'documents': [
-          for (var item in merged.entries) {'id': item.key, 'data': item.value}
-        ]
-      });
+      if (!_controller.isClosed) {
+        _controller.add({
+          'id': id,
+          'documents': [
+            for (var item in merged.entries) {'id': item.key, 'data': item.value}
+          ]
+        });
+      }
 
       if (result) {
         // [8] Delete the old collection 🧹.
         bool delete = this.id == id || await Shared._delete(this.id);
 
         // [9] Returning the result of migrating this collection 🚀.
+        final JSON current = delete ? merged : (collection ?? {});
         return SharedMany(
           success: delete,
           message: delete
               ? 'Successfully migrated the collection from ID `${this.id}` to ID `$id`.'
               : '''Failed to clear the old collection after migrating to the new ID. 
               Please try deleting the collection with ID `${this.id}` manually.''',
-          data: [
-            for (var item
-                in ((await Shared._read(delete ? id : this.id)) ?? {}).entries)
-              item.value
-          ],
+          data: [for (var item in current.entries) item.value],
         );
       }
 
@@ -283,7 +285,7 @@ class SharedCollection {
       bool result = await Shared._delete(id);
 
       // [4] Notify the stream about the change in the collection 📣.
-      _controller.add({});
+      if (!_controller.isClosed) _controller.add({});
 
       // [5] Returning the result of deleting this collection 🚀.
       return SharedNone(
