@@ -54,3 +54,7 @@ None. Fully backward-compatible. Existing apps using `SharedPreferences` as the 
 
 - Some parameters have been replaced by different rules, which will definitely introduce breaking changes
 - Full coverage test
+
+## 3.1.1
+
+- Change documentation
